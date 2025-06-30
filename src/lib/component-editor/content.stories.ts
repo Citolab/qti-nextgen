@@ -36,7 +36,7 @@ export const Default: Story = {
         class="grid grid-cols-2"
       >
         <web-canvas
-          class="p-16 col-span-2 border-gray-300 bg-white p-4 shadow outline-offset-2 outline-green-400 focus-within:outline-2"
+          class="col-span-2 border-gray-300 bg-white p-4 shadow outline-offset-2 outline-green-400 focus-within:outline-2"
         >
           <xml-store ${ref(xmlStore)} class="hidden"></xml-store>
         </web-canvas>

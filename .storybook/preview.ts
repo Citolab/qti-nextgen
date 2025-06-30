@@ -7,13 +7,6 @@ import type { Preview } from '@storybook/web-components-vite';
 // import customElements from '../custom-elements.json';
 // setCustomElementsManifest(customElements);
 
-// import { withTests } from '@storybook/addon-jest';
-// import results from '../.jest-test-results.json';
-
-// import '@shoelace-style/shoelace/dist/components/tab-panel/tab-panel.js';
-// import '@shoelace-style/shoelace/dist/components/tab/tab.js';
-// import '@shoelace-style/shoelace/dist/components/tab-group/tab-group.js';
-
 export const decorators = [
   // withTests({
   //   results,
@@ -23,7 +16,8 @@ export const decorators = [
 const preview: Preview = {
   globalTypes: {
     pseudo: {}
-  }
+  },
+  tags: ['autodocs']
   // decorators: [(Story, context) => withConsole()(Story)(context)]
 };
 

@@ -11,15 +11,15 @@ const config: StorybookConfig = {
   },
   docs: {},
   
-  viteFinal: async config => {
-    return {
-      ...config,
-      optimizeDeps: {
-        ...config.optimizeDeps
-      },
-      plugins: [...config.plugins!, tsconfigPaths.default()],
-      resolve: { ...config.resolve, alias: { ...config!.resolve!.alias, path: require.resolve('path-browserify') } }
-    };
-  }
+  // viteFinal: async config => {
+  //   return {
+  //     ...config,
+  //     optimizeDeps: {
+  //       ...config.optimizeDeps
+  //     },
+  //     plugins: [...config.plugins!, tsconfigPaths.default()],
+  //     resolve: { ...config.resolve, alias: { ...config!.resolve!.alias, path: require.resolve('path-browserify') } }
+  //   };
+  // }
 };
 export default config;
