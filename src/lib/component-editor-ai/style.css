@@ -1,0 +1,51 @@
+@import 'modern-normalize/modern-normalize.css';
+@import '@citolab/qti-components/item.css';
+@config "../../../tailwind.config.sb.cjs";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+qti-item-body,
+div.qti-layout-row {
+  @apply h-full;
+}
+h1 {
+  @apply text-base;
+}
+
+web-canvas {
+  &.splitline {
+    background: linear-gradient(to right, #eeeeee 0%, #eeeeee 50%, #ffffff 50%, #ffffff 100%);
+    background-position: center;
+    background-size: 2px 100%;
+    background-repeat: no-repeat;
+  }
+  [part='canvas'] {
+    @apply h-full outline-none focus:ring-2 focus:ring-offset-0;
+  }
+}
+
+div.error {
+  @apply -z-10 origin-center scale-125 rounded border bg-red-200;
+}
+
+qti-simple-choice {
+  cursor: text !important;
+  user-select: text !important;
+  background: transparent !important;
+}
+
+*:empty:before {
+  content: '\0a';
+  white-space: pre-wrap;
+}
+
+.activeButton {
+  position-anchor: --activeElement;
+  position: fixed;
+  right: calc(anchor(left) + 2rem);
+  top: anchor(top);
+
+  z-index: 1000;
+}

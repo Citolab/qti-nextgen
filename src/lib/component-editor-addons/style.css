@@ -1,0 +1,39 @@
+@import 'modern-normalize/modern-normalize.css';
+@config "../../../tailwind.config.sb.cjs";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+web-canvas {
+  [part='canvas'] {
+    @apply outline-none focus:ring-2 focus:ring-offset-8;
+  }
+  @apply z-20;
+}
+
+div.error {
+  @apply z-10 origin-center scale-125 rounded border bg-red-200;
+}
+
+.two-column {
+  @apply grid grid-cols-2 gap-0 divide-x divide-solid divide-slate-200;
+  & > * {
+    @apply border-y-0 p-4;
+  }
+}
+
+h1 {
+  @apply mt-0;
+}
+
+/* *:read-write {
+  border:2px solid blue;
+  white-space :'pre-wrap';
+  white-space :'break-spaces';
+} */
+
+p:empty:before {
+  content: '\0a';
+  white-space: pre-wrap;
+}

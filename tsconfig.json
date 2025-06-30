@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false,
+    "module": "ESNext",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "skipLibCheck": true,
+
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+
+    "strict": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
+
+    "types": ["vitest/globals","@types/dom-view-transitions","./test/vitest.d.ts"],
+    "paths": {
+      "@editor/content": ["./src/lib/component-editor"],
+      "@editor/content-addons": ["./src/lib/component-editor-addons"],
+    },
+
+  },
+  "include": ["src", "public/assets"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}
