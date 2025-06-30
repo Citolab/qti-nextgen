@@ -126,7 +126,6 @@
     "eslint-plugin-lit-a11y": "^4.1.4",
     "eslint-plugin-sort-imports-es6-autofix": "^0.6.0",
     "eslint-plugin-storybook": "^9.0.14",
-    "eslint-plugin-vitest": "^0.5.4",
     "eslint-plugin-wc": "^2.1.1",
     "fast-xml-parser": "^4.5.0",
     "nodemon": "^3.1.7",
