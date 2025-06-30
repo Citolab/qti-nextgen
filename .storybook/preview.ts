@@ -1,9 +1,9 @@
 import '../src/styles.css';
 // https://github.com/storybookjs/storybook-addon-console/issues/83#issuecomment-2041107008
 // import { withConsole } from '@storybook/addon-console';
-import type { Preview } from '@storybook/web-components';
+import type { Preview } from '@storybook/web-components-vite';
 
-// import { setCustomElementsManifest } from '@storybook/web-components';
+// import { setCustomElementsManifest } from '@storybook/web-components-vite';
 // import customElements from '../custom-elements.json';
 // setCustomElementsManifest(customElements);
 

@@ -4,8 +4,8 @@ import { insertParagraph } from './insertParagraph';
 import * as pModule from '../../../elements/p';
 
 
-import './utilities/xmlMatcher';
-import { parseContentWithCursors, insertCursorsIntoContent } from './utilities/xmlwithcursorparser';
+import '../../../../utilities/xmlMatcher';
+import { parseContentWithCursors, insertCursorsIntoContent } from '../../../../utilities/xmlwithcursorparser';
 import { MyModuleInterface } from '../../../src/types';
 import { xmlRootNodeName } from '../../../elements/this-is-the-root-tag';
 

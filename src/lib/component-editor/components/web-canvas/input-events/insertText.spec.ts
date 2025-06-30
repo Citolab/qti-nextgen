@@ -1,8 +1,8 @@
 import { insertText } from './insertText';
 import * as pModule from '../../../elements/p';
 import * as strongModule from '../../../elements/strong';
-import { parseContentWithCursors, insertCursorsIntoContent } from './utilities/xmlwithcursorparser';
-import './utilities/xmlMatcher';
+import { parseContentWithCursors, insertCursorsIntoContent } from '../../../../utilities/xmlwithcursorparser';
+import '../../../../utilities/xmlMatcher';
 import { MyModuleInterface } from '../../../src/types';
 
 const xml = String.raw;

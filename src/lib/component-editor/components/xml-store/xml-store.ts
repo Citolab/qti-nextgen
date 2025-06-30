@@ -151,24 +151,11 @@ export class XmlStore extends LitElement {
     this.dispatchEvent(new CustomEvent('patched', { detail: diffs, composed: true, bubbles: true }));
   }
 
-  // this.dispatchEvent(
-  //   new CustomEvent('xml-store-xml', {
-  //     detail: {
-  //       xml: formatXml(this.xmlDocument.documentElement)
-  //     },
-  //     bubbles: true
-  //   })
-  // );
-
   private _observeXMLMutations(): void {
     const config = { attributes: false, childList: true, subtree: true, characterData: true };
     const callback = (mutations: MutationRecord[], observer: MutationObserver): void => {
       this._observerMutations = [this._observerMutations, ...mutations];
       
-      // console.log('mutations', mutations);
-      // const div = document.querySelector('#observedMutationClone');
-      // applyMutationsToTarget(mutations, div);
-
       mutations.forEach(mutation => {
         this.dispatchEvent(
           new CustomEvent('xml-store-xml', {
@@ -209,73 +196,3 @@ function formatXml(xmlDoc: Element) {
 
   return resultXml;
 }
-
-// function findEquivalentNode(sourceNode: Node, targetRoot: Node): Node | null {
-//   const path = getNodePath(sourceNode);
-//   return getNodeByPath(targetRoot, path);
-// }
-
-// function getNodePath(node: Node): number[] {
-//   const path: number[] = [];
-//   while (node.parentNode) {
-//     const siblings = Array.from(node.parentNode.childNodes);
-//     path.unshift(siblings.indexOf(node));
-//     node = node.parentNode;
-//   }
-//   return path;
-// }
-
-// function getNodeByPath(root: Node, path: number[]): Node | null {
-//   let current: Node | null = root;
-//   for (const index of path) {
-//     if (!current || !current.childNodes || current.childNodes.length <= index) {
-//       return null;
-//     }
-//     current = current.childNodes[index];
-//   }
-//   return current;
-// }
-
-// function applyMutationsToTarget(mutations: MutationRecord[], targetNode: Node): void {
-//   mutations.forEach(mutation => {
-//     switch (mutation.type) {
-//       case 'childList':
-//         // Handle added nodes
-//         mutation.addedNodes.forEach(node => {
-//           const clone = node.cloneNode(true);
-//           const refNode = mutation.nextSibling || null;
-//           const parent = findEquivalentNode(mutation.target, targetNode);
-//           if (parent) parent.insertBefore(clone, refNode);
-//         });
-
-//         // Handle removed nodes
-//         mutation.removedNodes.forEach(node => {
-//           const parent = findEquivalentNode(mutation.target, targetNode);
-//           const matching = Array.from(parent?.childNodes || []).find(n => n.isEqualNode(node));
-//           if (parent && matching) parent.removeChild(matching);
-//         });
-//         break;
-
-//       case 'characterData':
-//         const targetTextNode = findEquivalentNode(mutation.target, targetNode);
-//         if (targetTextNode && targetTextNode.nodeType === Node.TEXT_NODE) {
-//           targetTextNode.textContent = mutation.target.textContent;
-//         }
-//         break;
-
-//       case 'attributes':
-//         const targetElem = findEquivalentNode(mutation.target, targetNode) as Element;
-//         const sourceElem = mutation.target as Element;
-//         if (targetElem && sourceElem) {
-//           const attrName = mutation.attributeName!;
-//           const attrValue = sourceElem.getAttribute(attrName);
-//           if (attrValue === null) {
-//             targetElem.removeAttribute(attrName);
-//           } else {
-//             targetElem.setAttribute(attrName, attrValue);
-//           }
-//         }
-//         break;
-//     }
-//   });
-// }

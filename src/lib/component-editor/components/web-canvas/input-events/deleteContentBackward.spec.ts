@@ -1,9 +1,9 @@
 import { RangeXML } from '../../../src/RangeXML';
 import { deleteContentBackward } from './deleteContentBackward';
-import { insertCursorsIntoContent, parseContentWithCursors } from './utilities/xmlwithcursorparser';
+import { insertCursorsIntoContent, parseContentWithCursors } from '../../../../utilities/xmlwithcursorparser';
 import * as pModule from '../../../elements/p';
 import * as thisIsTheRootTagModule from '../../../elements/this-is-the-root-tag';
-import './utilities/xmlMatcher';
+import '../../../../utilities/xmlMatcher';
 
 
 import { MyModuleInterface } from '../../../src/types';

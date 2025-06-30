@@ -1,6 +1,6 @@
 import { html } from 'lit';
 import { createRef, ref } from 'lit-html/directives/ref.js';
-import { within, userEvent, expect } from '@storybook/test';
+import { within, userEvent, expect } from 'storybook/test';
 
 import './index';
 // import './style.css';
@@ -8,7 +8,7 @@ import './index';
 import { XmlStore } from './components/xml-store/xml-store';
 import './components/selection-logger';
 
-import { Meta, StoryObj } from '@storybook/web-components';
+import { Meta, StoryObj } from '@storybook/web-components-vite';
 import { xmlRootNodeName } from './elements/this-is-the-root-tag';
 
 const meta: Meta = {
