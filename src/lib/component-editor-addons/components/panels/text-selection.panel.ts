@@ -28,10 +28,10 @@ export class TextSelectionPanel extends LitElement {
 
     this.infoCanvas = this.closest('web-content-editor').querySelector('info-canvas') as InfoCanvas;
 
-    this.infoCanvas.addEventListener('canvas-selectionchange', (e:CustomEvent) => {
+    this.infoCanvas.addEventListener('canvas-selectionchange', (e: CustomEvent) => {
       console.log(e.detail.range);
 
-//      if ((e as any).detail.type === 'Range') { pk: old check, do not know why this is not working
+      //      if ((e as any).detail.type === 'Range') { pk: old check, do not know why this is not working
       if (e.detail.range.endOffset > 0 && e.detail.range.endOffset !== e.detail.range.startOffset) {
         this._elementClicked(e.target as HTMLElement);
       }
