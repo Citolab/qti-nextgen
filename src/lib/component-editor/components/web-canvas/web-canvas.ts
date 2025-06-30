@@ -226,7 +226,7 @@ export class WebCanvas extends LitElement {
 
       this.activeElement?.removeAttribute('style');
       this.activeElement = element;
-      element.style.anchorName = '--activeElement';
+      element.style.setProperty('--anchor-name', '--activeElement');
 
       this._dispatchCanvasSelectionChange({
         canvas: element.closest("[contenteditable]"),

@@ -31,10 +31,8 @@ export const NextGen = {
     const webCanvas = createRef<WebCanvas>();
     const infoCanvas = createRef<InfoCanvas>();
     const xmlString = createRef<HTMLPreElement>();
-    // useEffect(() => {}, [webContentEditor, xmlStore, webCanvas]);
-    // clone em p qti-choice-interaction qti-simple-choice strong ul li h1
+    
     return html`
-      <div class="flex w-screen flex-col">
         <web-content-editor
           ${ref(webContentEditor)}
           @xml-store-xml=${e =>
@@ -69,7 +67,6 @@ export const NextGen = {
             </meer-keuze>
           </element-modifier>
 
-
           <panel-handler>
             <ai-actions
               class="select:rounded-xl absolute left-0 top-0 z-40 flex max-w-[600px] flex-col gap-2 rounded-lg bg-white p-2 text-sm shadow-2xl part-[btn-gray]:float-right part-[prop]:flex part-[input]:min-w-[150px] part-[prop]:justify-between part-[prop]:gap-4 part-[btn-gray]:bg-gray-100 part-[btn-gray]:p-1 part-[btn]:p-1 part-[input]:p-1 part-[prop]:p-1 focus:part-[btn]:bg-blue-400"
@@ -87,7 +84,7 @@ export const NextGen = {
           <selection-logger></selection-logger>
         </web-content-editor>
         <pre class="block overflow-x-auto border p-4 text-xs text-gray-600" ${ref(xmlString)}></pre>
-      </div>
+
     `;
   }
 };

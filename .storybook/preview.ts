@@ -16,8 +16,7 @@ export const decorators = [
 const preview: Preview = {
   globalTypes: {
     pseudo: {}
-  },
-  tags: ['autodocs']
+  }
   // decorators: [(Story, context) => withConsole()(Story)(context)]
 };
 

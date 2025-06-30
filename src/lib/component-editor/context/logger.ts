@@ -1,6 +1,5 @@
 import { createContext } from '@lit/context';
 import { ContentFunc, Diff, MyModuleInterface } from '../src/types';
-// import { RangeXML } from '../src/RangeXML';
 
 export interface EditContext {
   elms: Map<string, MyModuleInterface> | null;

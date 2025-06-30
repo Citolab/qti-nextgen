@@ -68,28 +68,3 @@ export class RangeXML
   setEnd = (node: Node, offset: number): void => this._range.setEnd(node, offset);
   cloneRange = () => this._range.cloneRange();
 }
-
-//   // if (scEl.textContent === '') {
-//   //   scEl.appendChild(this.doc.createElement('br'));
-//   // }
-// }
-// // if (sc === ec && scEl == ecEl) {
-// //   const xmlDoc = this._range.getDocument();
-// //   const parentElement = scEl.parentElement;
-// //   scEl.remove();
-// //   scEl = xmlDoc.createElement('p');
-// //   parentElement.replaceWith(scEl);
-
-// //   if (scEl.textContent === '') {
-// //     scEl.appendChild(this.doc.createElement('br'));
-// //   }
-// // }
-// // else {
-// // This usecase is for deleting everything ctrl+a and then delete
-// // and then type a letter, delete that letter..
-// // THATS WHEN YOU ENTER THIS CODE
-// scEl.normalize();
-// // if (scEl.innerHTML === '') {
-// //   scEl.appendChild(this.doc.createElement('br'));
-// // }
-// // }

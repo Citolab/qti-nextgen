@@ -30,6 +30,8 @@ export const Default: Story = {
     };
 
     return html`
+
+      <div class="activeButton">JOEHOE</div>
       <web-content-editor
         @xml-store-xml=${e => (xmlString.value.textContent = e.detail.xml)}
         supported-elements="p this-is-the-root-tag"
@@ -46,10 +48,6 @@ export const Default: Story = {
           <selection-logger></selection-logger>
         </div>
       </web-content-editor>
-
-      <div id="observedMutationClone">
-        
-      </div>
 
       <button @click=${() => loadXML()}>load XML</button>
     `;
