@@ -1,4 +1,4 @@
-import { consume } from '@lit/context';
+import { consume, ContextConsumer } from '@lit/context';
 import { DiffDOM } from 'diff-dom';
 import { LitElement } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
@@ -8,7 +8,7 @@ import { Diff } from '../../src/types';
 import * as InputEvents from './input-events';
 import { xmlRootNodeName } from '../../elements/this-is-the-root-tag';
 import { Signal } from '@lit-labs/signals';
-import { signalCanvases, signalPatch } from '../web-content-editor';
+import { canvasesContext, patchContext } from '../web-content-editor';
 
 @customElement('web-canvas')
 export class WebCanvas extends LitElement {
@@ -37,11 +37,33 @@ export class WebCanvas extends LitElement {
   public _selection?: XmlSelection;
   activeElement: HTMLElement;
 
+  private patchConsumer = new ContextConsumer(this, {
+    context: patchContext,
+    subscribe: true,
+    callback: this._onPatchContextChanged.bind(this),
+  });
+
+  private _onPatchContextChanged(value: Diff[]) {
+    if (!value || value.length === 0) {
+      return;
+    }
+    this.patch(value);
+  }
+    private patchCanvases = new ContextConsumer(this, {
+      context: canvasesContext,
+      subscribe: true,
+      callback: this._onCanvasesContextChanged.bind(this),
+    });
+
+    private _onCanvasesContextChanged(value: Element[]) {
+          if (!value || value.length === 0) {
+      return;
+    }
+      this.initializeCanvases(value);
+    }
+  
   // ------------------ PUBLIC ------------------
 
-  constructor() {
-    super();
-  }
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -50,19 +72,19 @@ export class WebCanvas extends LitElement {
     // this.rootNode = this.closest('web-content-editor').getRootNode() as Document | ShadowRoot;
     this.prepend(this.rootCanvas);
 
-    const watcherPatch = new Signal.subtle.Watcher(async () => {
-      await 0; // Notify callbacks are not allowed to access signals synchronously
-      this.patch(signalPatch.get());
-      watcherPatch.watch(); // Watchers have to be re-enabled after they run:
-    });
-    watcherPatch.watch(signalPatch);
+    // const watcherPatch = new Signal.subtle.Watcher(async () => {
+    //   await 0; // Notify callbacks are not allowed to access signals synchronously
+    //   this.patch(signalPatch.get());
+    //   watcherPatch.watch(); // Watchers have to be re-enabled after they run:
+    // });
+    // watcherPatch.watch(signalPatch);
 
-    const watcherCanvases = new Signal.subtle.Watcher(async () => {
-      await 0; // Notify callbacks are not allowed to access signals synchronously
-      this.initializeCanvases(signalCanvases.get());
-      watcherCanvases.watch(); // Watchers have to be re-enabled after they run:
-    });
-    watcherCanvases.watch(signalCanvases);
+    // const watcherCanvases = new Signal.subtle.Watcher(async () => {
+    //   await 0; // Notify callbacks are not allowed to access signals synchronously
+    //   this.initializeCanvases(signalCanvases.get());
+    //   watcherCanvases.watch(); // Watchers have to be re-enabled after they run:
+    // });
+    // watcherCanvases.watch(signalCanvases);
   }
 
   public printMessage(message: string): void {

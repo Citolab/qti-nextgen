@@ -1,6 +1,6 @@
 import { LitElement, nothing, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { provide } from '@lit/context';
+import { createContext, provide } from '@lit/context';
 import { editContext, EditContext } from '../context/logger';
 import { ContentFunc, Diff, MyModuleInterface } from '../src/types';
 import { XmlSelection, xmlSelectionContext } from '../context/selection';
@@ -15,12 +15,14 @@ import {
   formatXml
 } from './xml-store/xml-store.functions';
 import { xPath } from './xml-store/libs/xpath/Xpath';
-import { findElement, getUpperParent } from './utilities';
 
-export const signalPatch = signal([] as Diff[]);
-export const signalCanvases = signal([] as Element[]);
-export const signalSelection = signal(null as StaticRange);
+// export const signalPatch = signal([] as Diff[]);
+// export const signalCanvases = signal([] as Element[]);
+// export const signalSelection = signal(null as StaticRange);
 
+export const patchContext = createContext('signalPatch')
+export const canvasesContext = createContext<{}>('signalCanvases');
+export const selectionContext = createContext<{}>('signalSelection');
 @customElement('web-content-editor')
 export class WebContentEditor extends LitElement {
   // Providing contexts for logger and selection
@@ -41,6 +43,15 @@ export class WebContentEditor extends LitElement {
 
   // you can specify a canvas-selector to select multiple canvasses
   canvasSelector: string = xmlRootNodeName; // default to the root node
+
+  @provide({ context: patchContext })
+  public signalPatch = [] as Diff[];
+
+  @provide({ context: canvasesContext })
+  public signalCanvases = [] as Element[];
+
+  @provide({ context: selectionContext })
+  public signalSelection = null as StaticRange;
 
   @provide({ context: editContext })
   @state()
@@ -93,14 +104,14 @@ export class WebContentEditor extends LitElement {
     this.loadCustomElements();
     this.addEventListener('canvas-selectionchange', this.onCanvasSelectionChange);
 
-    this.addEventListener(UndoEvent.eventName, (event: UndoEvent) => {
-      const range = this.undo(event.canvas);
-      event.range = range;
-    });
-    this.addEventListener(RedoEvent.eventName, (event: UndoEvent) => {
-      const range = this.undo(event.canvas);
-      event.range = range;
-    });
+    // this.addEventListener(UndoEvent.eventName, (event: UndoEvent) => {
+    //   const range = this.undo(event.canvas);
+    //   event.range = range;
+    // });
+    // this.addEventListener(RedoEvent.eventName, (event: UndoEvent) => {
+    //   const range = this.undo(event.canvas);
+    //   event.range = range;
+    // });
   }
 
   private _observerMutations: any[];
@@ -126,69 +137,69 @@ export class WebContentEditor extends LitElement {
     this.apply(false);
 
     // this.dispatchEvent(new CanvasesEvent(this.xmlCanvasElements));
-    signalCanvases.set(this.xmlCanvasElements);
+    this.signalCanvases = this.xmlCanvasElements;
 
     this._observeXMLMutations();
   }
 
-  public updateXML(contentFunc: ContentFunc, data?: string) {
-    // @ts-ignore ignore the fact that this.getRootNode() is a shadowRoot, Chrome and Edge support this, Safari and Firefox don't
-    const range = this.getRootNode().getSelection().getRangeAt(0); // kan ook renderroot zijn
-    const xmlRange = this.createRangeXML(range);
-    const xmlSelectionRange = contentFunc(xmlRange, data);
-    this.apply();
-    signalSelection.set(xmlSelectionRange);
-  }
+  // public updateXML(contentFunc: ContentFunc, data?: string) {
+  //   // @ts-ignore ignore the fact that this.getRootNode() is a shadowRoot, Chrome and Edge support this, Safari and Firefox don't
+  //   const range = this.getRootNode().getSelection().getRangeAt(0); // kan ook renderroot zijn
+  //   const xmlRange = this.createRangeXML(range);
+  //   const xmlSelectionRange = contentFunc(xmlRange, data);
+  //   this.apply();
+  //   signalSelection.set(xmlSelectionRange);
+  // }
 
-  public addNewContent(data?: string) {
-    const xmlRange = this.createRangeXML(this.logger.xmlRange);
+  // public addNewContent(data?: string) {
+  //   const xmlRange = this.createRangeXML(this.logger.xmlRange);
 
-    //create new div
-    const newContent = this.xmlDocument.createElement('div');
-    newContent.innerHTML = data;
+  //   //create new div
+  //   const newContent = this.xmlDocument.createElement('div');
+  //   newContent.innerHTML = data;
 
-    const upperParentNode = getUpperParent(xmlRange);
-    //place in new html tag after current position or replace when empty
-    if (upperParentNode.textContent.trim()) {
-      getUpperParent(xmlRange).after(newContent);
-    } else {
-      getUpperParent(xmlRange).replaceWith(newContent);
-    }
+  //   const upperParentNode = getUpperParent(xmlRange);
+  //   //place in new html tag after current position or replace when empty
+  //   if (upperParentNode.textContent.trim()) {
+  //     getUpperParent(xmlRange).after(newContent);
+  //   } else {
+  //     getUpperParent(xmlRange).replaceWith(newContent);
+  //   }
 
-    const xmlSelectionRange = {
-      endContainer: newContent,
-      endOffset: 0,
-      collapsed: true,
-      startContainer: newContent,
-      startOffset: 0
-    };
+  //   const xmlSelectionRange = {
+  //     endContainer: newContent,
+  //     endOffset: 0,
+  //     collapsed: true,
+  //     startContainer: newContent,
+  //     startOffset: 0
+  //   };
 
-    this.apply();
-    signalSelection.set(xmlSelectionRange);
-  }
+  //   this.apply();
+  //   signalSelection.set(xmlSelectionRange);
+  // }
 
-  public editContent(el: Element, value?: string) {
-    const xmlRange = this.createRangeXML(this.logger.xmlRange);
-    const xmlEl = findElement(xmlRange, el.nodeName);
-    xmlEl.outerHTML = value;
+  // public editContent(el: Element, value?: string) {
+  //   const xmlRange = this.createRangeXML(this.logger.xmlRange);
+  //   const xmlEl = findElement(xmlRange, el.nodeName);
+  //   xmlEl.outerHTML = value;
 
-    const xmlSelectionRange = {
-      endContainer: xmlEl,
-      endOffset: 0,
-      collapsed: true,
-      startContainer: xmlEl,
-      startOffset: 0
-    };
+  //   const xmlSelectionRange = {
+  //     endContainer: xmlEl,
+  //     endOffset: 0,
+  //     collapsed: true,
+  //     startContainer: xmlEl,
+  //     startOffset: 0
+  //   };
 
-    this.apply();
-    signalSelection.set(xmlSelectionRange);
-  }
+  //   this.apply();
+  //   signalSelection.set(xmlSelectionRange);
+  // }
 
-  changeSelection(range: StaticRange) {
-    const rangeXML = this.createRangeXML(range);
-    this.logger.xmlRange = rangeXML;
-    signalSelection.set(range);
-  }
+  // changeSelection(range: StaticRange) {
+  //   const rangeXML = this.createRangeXML(range);
+  //   this.logger.xmlRange = rangeXML;
+  //   signalSelection.set(range);
+  // }
 
   public findXMLNode(node: Node): Node | Element | null {
     const regexa = new RegExp(`(${xmlRootNodeName}.*)`);
@@ -279,7 +290,8 @@ export class WebContentEditor extends LitElement {
       });
     }
     // this.dispatchEvent(new PatchEvent(diffs));
-    signalPatch.set(diffs);
+    // signalPatch.set(diffs);
+    this.signalPatch = diffs;
   }
 
   private _observeXMLMutations(): void {
@@ -327,7 +339,7 @@ export class WebContentEditor extends LitElement {
     return {
       elms: new Map<string, MyModuleInterface>(),
       // web-canvas functions
-      updateXML: (fn: (xmlRange: Range) => StaticRange) => this.updateXML(fn),
+      // updateXML: (fn: (xmlRange: Range) => StaticRange) => this.updateXML(fn),
 
       // info-canvas functions
       applyDiffs: (docEl, diffs: Diff[]) => this.diffDOM.apply(docEl, diffs),
@@ -341,8 +353,8 @@ export class WebContentEditor extends LitElement {
 
       // ai functions, add new content, edit content, change selection
       canvases: () => this.xmlCanvasElements,
-      addNewContent: value => this.addNewContent(value),
-      editContent: (el, value) => this.editContent(el, value),
+      // addNewContent: value => this.addNewContent(value),
+      // editContent: (el, value) => this.editContent(el, value),
       // changeSelection: range => this.webCanvas.changeSelection(range),
 
       createRangeXML: (range: StaticRangeInit) => this.createRangeXML(range),
@@ -364,7 +376,7 @@ export class WebContentEditor extends LitElement {
     const range = selection.getRangeAt(0);
 
     // check if selection is in canvas
-    if (signalCanvases.get().some(canvas => canvas.contains(focusNode))) {
+    if (this.signalCanvases.some(canvas => canvas.contains(focusNode))) {
       const xmlRange = this.createRangeXML(range);
       this.logger.xmlRange = xmlRange;
 

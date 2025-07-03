@@ -7,9 +7,9 @@ export interface EditContext {
   xpath: (node: Node) => string;
   canvases: () => Element[];
   xmlNode: (node: Node) => Node | Element | null;
-  updateXML: (fn: ContentFunc) => void;
-  addNewContent: (value: string) => void;
-  editContent: (el: Element, value: string) => void;
+  updateXML?: (fn: ContentFunc) => void;
+  addNewContent?: (value: string) => void;
+  editContent?: (el: Element, value: string) => void;
   // changeSelection: (range: StaticRange) => void;
   doc: () => XMLDocument;
   xmlRange: Range | null;
