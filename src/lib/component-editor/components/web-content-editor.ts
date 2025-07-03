@@ -1,16 +1,19 @@
-import { LitElement, nothing, html } from 'lit';
-import { customElement, state } from 'lit/decorators.js';
-import { XmlStore } from './xml-store/xml-store';
+import { LitElement, nothing, PropertyValues } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
 import { provide } from '@lit/context';
 import { editContext, EditContext } from '../context/logger';
 import { Diff, MyModuleInterface } from '../src/types';
 import { XmlSelection, xmlSelectionContext } from '../context/selection';
 import { WebCanvas } from './web-canvas/web-canvas';
 import { DiffDOM } from 'diff-dom';
+import { CanvasesEvent, PatchEvent, XMLStore, XmlUpdateEvent } from './xml-store/xml-store';
+import { html, signal } from '@lit-labs/signals';
+
+export const signalPatch = signal([] as Diff[]);
+export const signalCanvases = signal([] as Element[]);
 
 @customElement('web-content-editor')
 export class WebContentEditor extends LitElement {
-  
   // Providing contexts for logger and selection
   @provide({ context: editContext })
   @state()
@@ -25,16 +28,32 @@ export class WebContentEditor extends LitElement {
     element: null
   };
 
+  @property({ type: String, reflect: true, attribute: 'myxml' })
+  public xml: string = '';
+
+  @property({ type: String, reflect: true })
+  public canvasSelector: string = 'web-canvas';
+
+  protected update(changedProperties: PropertyValues): void {
+    super.update(changedProperties);
+    // If xml changes, we need to update the XMLStore
+    if (changedProperties.has('xml')) {
+      this.logger.xmlStore.initializeXML(this.xml);
+    }
+    // If canvasSelector changes, we need to update the XMLStore's canvasSelector
+    if (changedProperties.has('canvasSelector')) {
+      this.logger.xmlStore.canvasSelector = this.canvasSelector;
+    }
+  }
+
   private diffDOM = new DiffDOM({
     preDiffApply: info => info.diff.action === 'removeAttribute' && true
   });
 
-  xmlStore: XmlStore;
   webCanvas: WebCanvas;
 
   connectedCallback(): void {
     super.connectedCallback();
-    this.xmlStore = this.querySelector('xml-store') as XmlStore;
     this.webCanvas = this.querySelector('web-canvas') as WebCanvas;
   }
 
@@ -59,6 +78,19 @@ export class WebContentEditor extends LitElement {
    * Creates a logger with a variety of utility functions for managing elements, ranges, and content in XML.
    */
   private createEditContext(): EditContext {
+    const xmlStore = new XMLStore();
+    xmlStore.addEventListener('patched', (event: PatchEvent) => {
+      signalPatch.set(event.diffs);
+    });
+    xmlStore.addEventListener('xml-store-xml', (event: XmlUpdateEvent) => {
+      this.dispatchEvent(
+        new CustomEvent('xml-store-xml', { detail: event.xml, bubbles: true, composed: true })
+      );
+    });
+    xmlStore.addEventListener('canvases', (event: CanvasesEvent) => {
+      signalCanvases.set(event.canvases);
+    });
+
     return {
       elms: new Map<string, MyModuleInterface>(),
       // web-canvas functions
@@ -66,20 +98,21 @@ export class WebContentEditor extends LitElement {
 
       // info-canvas functions
       applyDiffs: (docEl, diffs: Diff[]) => this.diffDOM.apply(docEl, diffs),
-      xpath: (node: Node) => this.xmlStore.determineXpathNode(node),
+      xpath: (node: Node) => xmlStore.determineXpathNode(node),
 
       // for download
-      doc: () => this.xmlStore.xmlDocument,
+      doc: () => xmlStore.xmlDocument,
 
       // co-pilot ( add text when tab is pressed)
-      xmlNode: (node: Node) => this.xmlStore.findXMLNode(node),
+      xmlNode: (node: Node) => xmlStore.findXMLNode(node),
 
       // ai functions, add new content, edit content, change selection
-      canvases: () => this.xmlStore.xmlCanvasElements,
+      canvases: () => xmlStore.xmlCanvasElements,
       addNewContent: value => this.webCanvas.addNewContent(value),
       editContent: (el, value) => this.webCanvas.editContent(el, value),
       changeSelection: range => this.webCanvas.changeSelection(range),
-      
+      xmlStore: xmlStore,
+
       xmlRange: null
     };
   }

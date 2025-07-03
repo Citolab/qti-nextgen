@@ -11,6 +11,7 @@ import { WebContentEditor } from '../component-editor/components/web-content-edi
 import { Meta, StoryObj } from '@storybook/web-components-vite';
 
 const meta = {
+  title: 'Addons',
   parameters: {
     layout: 'fullscreen',
     backgrounds: { default: 'light' }
@@ -20,7 +21,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Plugins: Story = {
+export const Addons: Story = {
   render: () => {
     const webContentEditor = createRef<WebContentEditor>();
     const webCanvas = createRef<WebCanvas>();
@@ -28,8 +29,9 @@ export const Plugins: Story = {
 
     return html`
       <web-content-editor
+      canvas-selector=${`[class*="content"]`} myxml=${example}
         ${ref(webContentEditor)}
-        supported-elements="p h1 strong em  div "
+        supported-elements="p h1 strong em div"
         class="mx-auto mt-12 block w-[92ch]"
       >
         <error-canvas .forbiddenWords=${['nooit', 'altijd']}></error-canvas>
@@ -64,9 +66,7 @@ export const Plugins: Story = {
 
         <div class="relative min-h-[36rem] rounded border-solid border-slate-200 bg-white p-12">
           <info-canvas class="relative block text-transparent" ${ref(infoCanvas)}>
-            <web-canvas class="splitline absolute inset-0 text-gray-800" ${ref(webCanvas)}>
-              <xml-store canvas-selector=${`[class*="content"]`} xml=${example}></xml-store>
-            </web-canvas>
+            <web-canvas class="splitline absolute inset-0 text-gray-800" ${ref(webCanvas)}></web-canvas>
           </info-canvas>
         </div>
       </web-content-editor>

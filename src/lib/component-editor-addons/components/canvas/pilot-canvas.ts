@@ -1,8 +1,9 @@
 import { consume } from '@lit/context';
 import { LitElement } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { Diff, EditContext, editContext } from '../../../component-editor';
+import { Diff, EditContext, editContext, signalPatch } from '../../../component-editor';
 import { InfoCanvas } from '../info-canvas';
+import { Signal } from '@lit-labs/signals';
 
 @customElement('pilot-canvas')
 export class PilotCanvas extends LitElement {
@@ -29,9 +30,12 @@ export class PilotCanvas extends LitElement {
     }`);
     (this.closest('web-content-editor').parentElement.getRootNode() as Document).adoptedStyleSheets.push(sheet);
 
-    this.infoCanvas.addEventListener('patched', (event: Event & { detail: Diff[] }) => {
-      this.patch(event.detail);
+    const watcherPatch = new Signal.subtle.Watcher(async () => {
+      await 0; // Notify callbacks are not allowed to access signals synchronously
+      this.patch(signalPatch.get());
+      watcherPatch.watch(); // Watchers have to be re-enabled after they run:
     });
+    watcherPatch.watch(signalPatch);
 
     this.infoCanvas.addEventListener('keydown', (e: KeyboardEvent) => {
       if (e.key === 'Tab') {
@@ -64,7 +68,6 @@ export class PilotCanvas extends LitElement {
   public patch(diffs: Diff[]) {
     this.infoCanvas.canvases.forEach((canvas: Element) => {
       Array.from(canvas.children).forEach((el: Element) => {
-        // debugger;
         if (el?.textContent?.toLowerCase() === 'genereer') {
           el.setAttribute('data-pilot', ` supervette ai dingen`);
         } else {

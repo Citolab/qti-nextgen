@@ -5,13 +5,14 @@ import { within, userEvent, expect } from 'storybook/test';
 import './index';
 // import './style.css';
 
-import { XmlStore } from './components/xml-store/xml-store';
 import './components/selection-logger';
 
 import { Meta, StoryObj } from '@storybook/web-components-vite';
 import { xmlRootNodeName } from './elements/this-is-the-root-tag';
+import { WebContentEditor } from './index';
 
 const meta: Meta = {
+  title: 'Core',
   parameters: {
     layout: 'fullscreen',
     backgrounds: { default: 'light' }
@@ -20,29 +21,26 @@ const meta: Meta = {
 export default meta;
 type Story = StoryObj;
 
-export const Default: Story = {
+export const Core: Story = {
   render: args => {
-    const xmlStore = createRef<XmlStore>();
+    const webContentEditor = createRef<WebContentEditor>();
     const xmlString = createRef<HTMLPreElement>();
 
     const loadXML = () => {
-      xmlStore.value.xml = args.xml;
+      webContentEditor.value?.logger.xmlStore.initializeXML(args.xml);
     };
 
     return html`
-
-      <div class="activeButton">JOEHOE</div>
       <web-content-editor
+        ${ref(webContentEditor)}
         @xml-store-xml=${e => (xmlString.value.textContent = e.detail.xml)}
         supported-elements="p this-is-the-root-tag"
         class="grid grid-cols-2"
       >
         <web-canvas
           class="col-span-2 border-gray-300 bg-white p-4 shadow outline-offset-2 outline-green-400 focus-within:outline-2"
-        >
-          <xml-store ${ref(xmlStore)} class="hidden"></xml-store>
-        </web-canvas>
-        <div>
+        ></web-canvas>
+                <div>
           <pre class="block overflow-x-auto border p-4 text-xs text-gray-600" ${ref(xmlString)}></pre>
         </div>
           <selection-logger></selection-logger>
@@ -57,10 +55,8 @@ export const Default: Story = {
   }
 };
 
-
-
 export const DefaultPlay: Story = {
-  render: Default.render,
+  render: Core.render,
   args: {
     xml: `<p></p>`
   },

@@ -1,13 +1,31 @@
 import { DiffDOM } from 'diff-dom';
-import { LitElement } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
 import { Diff } from '../../src/types';
 import { xPath } from './libs/xpath/Xpath';
-import { populateCanvases as normalizeCanvasElements, createEmptyPatchDocument } from './xml-store.functions';
+import {
+  populateCanvases as normalizeCanvasElements,
+  createEmptyPatchDocument,
+  formatXml
+} from './xml-store.functions';
 import { xmlRootNodeName } from '../../elements/this-is-the-root-tag';
 
-@customElement('xml-store')
-export class XmlStore extends LitElement {
+export declare class XMLInterface {
+  xmlDocument: XMLDocument;
+  xmlCanvasElements: Element[];
+  canvasSelector: string;
+  xml: string;
+  findXMLNode(node: Node): Node | Element | null;
+  undo(
+    el: Element
+  ): { firstRoute: number[]; lastRoute: number[]; collapsed: boolean; startOffset: number; endOffset: number } | null;
+  redo(
+    el: Element
+  ): { firstRoute: number[]; lastRoute: number[]; startOffset: number; collapsed: boolean; endOffset: number } | null;
+  determineXpathNode(el: Element | Node): string;
+  createRangeXML(range: StaticRangeInit): Range;
+  apply(store?: boolean): void;
+}
+
+export class XMLStore extends EventTarget {
   private _patchAgainstXMLDocument: XMLDocument;
 
   // ------------------ PRIVATE -----------------
@@ -22,41 +40,31 @@ export class XmlStore extends LitElement {
   // ------------------ REACTIVE PROPERTIES ------------------
 
   // you can specify a canvas-selector to select multiple canvasses
-  @property({ type: String, attribute: 'canvas-selector' })
   canvasSelector: string = xmlRootNodeName; // default to the root node
 
-  @property({ type: String, attribute: 'xml' })
-  xml: string = '';
-  _observerMutations: any[];
-  // like watch, but better..
-  updated(changedProperties: Map<string, unknown>) {
-    changedProperties.has('xml') && this.xml !== '' && this._initializeXML();
-  }
+  private _observerMutations: any[];
 
-  _initializeXML() {
-    // this.xmlDocument = document.implementation.createDocument('', '', null);
-    
-    const parser = new DOMParser()
-    const filledDoc = parser.parseFromString(`<${xmlRootNodeName}>${this.xml}</${xmlRootNodeName}>`, 'text/xml');
-    
+  initializeXML(xml: string): void {
+    const parser = new DOMParser();
+    const filledDoc = parser.parseFromString(`<${xmlRootNodeName}>${xml}</${xmlRootNodeName}>`, 'text/xml');
+
     filledDoc.normalize();
-    
+
     filledDoc.createElement = (tagName: string) => {
       // we need override the createElement to create elements without namespace
       return filledDoc.createElementNS(null, tagName.toLocaleLowerCase());
     };
-    
+
     this.xmlDocument = filledDoc;
-    
-    
+
     this.xmlCanvasElements = Array.from(this.xmlDocument.querySelectorAll(this.canvasSelector));
     normalizeCanvasElements(this.xmlCanvasElements);
-    
+
     this._patchAgainstXMLDocument = createEmptyPatchDocument(xmlRootNodeName);
-    
+
     this.apply(false);
-    
-    this.dispatchEvent(new CustomEvent('canvases', { detail: this.xmlCanvasElements, composed: true, bubbles: true }));
+
+    this.dispatchEvent(new CanvasesEvent(this.xmlCanvasElements));
     this._observeXMLMutations();
   }
 
@@ -127,7 +135,7 @@ export class XmlStore extends LitElement {
 
   public apply(store = true): void {
     // @ts-ignore ignore the fact that this.getRootNode() is a shadowRoot, Chrome and Edge support this, Safari and Firefox don't
-    const selection = this.closest('web-content-editor').getRootNode().getSelection() as unknown as {
+    const selection = document.getSelection() as unknown as {
       collapsed: boolean;
       baseOffset: number;
       extentOffset: number;
@@ -148,22 +156,19 @@ export class XmlStore extends LitElement {
         endOffset: Math.max(selection.baseOffset, selection.extentOffset)
       });
     }
-    this.dispatchEvent(new CustomEvent('patched', { detail: diffs, composed: true, bubbles: true }));
+    this.dispatchEvent(new PatchEvent(diffs));
   }
 
   private _observeXMLMutations(): void {
     const config = { attributes: false, childList: true, subtree: true, characterData: true };
     const callback = (mutations: MutationRecord[], observer: MutationObserver): void => {
       this._observerMutations = [this._observerMutations, ...mutations];
-      
+
       mutations.forEach(mutation => {
         this.dispatchEvent(
-          new CustomEvent('xml-store-xml', {
-            detail: {
-              mutation: mutation,
-              xml: formatXml(this.xmlDocument.documentElement.firstElementChild)
-            },
-            bubbles: true
+          new XmlUpdateEvent({
+            mutation: mutation,
+            xml: formatXml(this.xmlDocument.documentElement.firstElementChild)
           })
         );
       });
@@ -173,26 +178,20 @@ export class XmlStore extends LitElement {
   }
 }
 
-function formatXml(xmlDoc: Element) {
-  const xsltProcessor = new XSLTProcessor();
-  const xsltDoc = new DOMParser().parseFromString(
-    [
-      '<?xml version="1.0"?>',
-      '<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform">',
-      '<xsl:output method="xml" indent="yes"/>',
-      '  <xsl:template match="@*|node()">',
-      '    <xsl:copy>',
-      '      <xsl:apply-templates select="node()|@*"/>',
-      '    </xsl:copy>',
-      '  </xsl:template>',
-      '</xsl:stylesheet>'
-    ].join('\n'),
-    'application/xml'
-  );
+export class PatchEvent extends Event {
+  constructor(public diffs: Diff[]) {
+    super('patched', { bubbles: true, composed: true });
+  }
+}
 
-  xsltProcessor.importStylesheet(xsltDoc);
-  const resultDoc = xsltProcessor.transformToDocument(xmlDoc);
-  const resultXml = new XMLSerializer().serializeToString(resultDoc);
+export class XmlUpdateEvent extends Event {
+  constructor(public xml: { mutation: MutationRecord; xml: string }) {
+    super('xml-store-xml', { bubbles: true, composed: true });
+  }
+}
 
-  return resultXml;
+export class CanvasesEvent extends Event {
+  constructor(public canvases: Element[]) {
+    super('canvases', { bubbles: true, composed: true });
+  }
 }

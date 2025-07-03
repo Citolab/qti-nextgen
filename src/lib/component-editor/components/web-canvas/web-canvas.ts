@@ -1,20 +1,19 @@
 import { consume } from '@lit/context';
 import { DiffDOM } from 'diff-dom';
-import { LitElement, PropertyValues } from 'lit';
-import { customElement, property, query } from 'lit/decorators.js';
+import { LitElement } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
 import { EditContext, editContext } from '../../context/logger';
 import { XmlSelection, xmlSelectionContext } from '../../context/selection';
 import { ContentFunc, Diff } from '../../src/types';
-import { XmlStore } from '../xml-store/xml-store';
 import * as InputEvents from './input-events';
 import { xmlRootNodeName } from '../../elements/this-is-the-root-tag';
 import { findElement, getUpperParent } from '../utilities';
+import { Signal } from '@lit-labs/signals';
+import { signalCanvases, signalPatch } from '../web-content-editor';
 
 @customElement('web-canvas')
 export class WebCanvas extends LitElement {
   createRenderRoot = () => this; // disable shadowRoot for XPATH and styling
-
-  @query('xml-store') xmlStore: XmlStore;
 
   public rootCanvas: HTMLElement;
   canvases: HTMLElement[] = [];
@@ -27,6 +26,13 @@ export class WebCanvas extends LitElement {
   @property({ attribute: false })
   public _logger?: EditContext;
 
+  updated(changedProperties: Map<string | number | symbol, unknown>) {
+    super.updated(changedProperties);
+    if (changedProperties.has('_logger')) {
+      console.log('_logger changed:', this._logger);
+    }
+  }
+
   @consume({ context: xmlSelectionContext, subscribe: true })
   @property({ attribute: false })
   public _selection?: XmlSelection;
@@ -36,16 +42,6 @@ export class WebCanvas extends LitElement {
 
   constructor() {
     super();
-    this.addEventListener('canvases', (event: Event & { detail: HTMLElement[] }) => {
-      this._initializeCanvases(event.detail);
-      this._initializeRoot();
-    });
-  }
-
-  protected firstUpdated(_changedProperties: PropertyValues): void {
-    this.xmlStore.addEventListener('patched', (event: Event & { detail: Diff[] }) => {
-      this.patch(event.detail);
-    });
   }
 
   connectedCallback(): void {
@@ -56,6 +52,20 @@ export class WebCanvas extends LitElement {
     this.rootCanvas = document.createElement(xmlRootNodeName);
     // this.rootNode = this.closest('web-content-editor').getRootNode() as Document | ShadowRoot;
     this.prepend(this.rootCanvas);
+
+    const watcherPatch = new Signal.subtle.Watcher(async () => {
+      await 0; // Notify callbacks are not allowed to access signals synchronously
+      this.patch(signalPatch.get());
+      watcherPatch.watch(); // Watchers have to be re-enabled after they run:
+    });
+    watcherPatch.watch(signalPatch);
+
+    const watcherCanvases = new Signal.subtle.Watcher(async () => {
+      await 0; // Notify callbacks are not allowed to access signals synchronously
+      this.initializeCanvases(signalCanvases.get());
+      watcherCanvases.watch(); // Watchers have to be re-enabled after they run:
+    });
+    watcherCanvases.watch(signalCanvases);
   }
 
   disconnectedCallback(): void {
@@ -71,7 +81,7 @@ export class WebCanvas extends LitElement {
       //   const parentElement = mutationRecord.target.parentElement;
       //   // parentElement.appendChild(mutationRecord.target.ownerDocument.createElement('br'));
       //   parentElement.removeChild(mutationRecord.target);
-      //   this.xmlStore.apply();
+      //   this._logger.xmlStore.apply();
       // }
     }
     mutationRecord.removedNodes.forEach(node => {
@@ -80,9 +90,8 @@ export class WebCanvas extends LitElement {
       //   const elm = this._logger.elms.get(node.nodeName.toLowerCase());
       //   if (elm && elm.mutateEmpty) {
       //     const xmlSelectionRange = elm.mutateEmpty(mutationRecord.target);
-
       //     if (xmlSelectionRange) {
-      //       this.xmlStore.apply();
+      //       this._logger.xmlStore.apply();
       //       this._restoreSelection(xmlSelectionRange);
       //     }
       //   }
@@ -99,7 +108,7 @@ export class WebCanvas extends LitElement {
       //   if (elm && elm.mutateAdded) {
       //     const xmlSelectionRange = elm.mutateAdded(node);
       //     if (xmlSelectionRange) {
-      //       this.xmlStore.apply();
+      //       this._logger.xmlStore.apply();
       //       this._restoreSelection(xmlSelectionRange);
       //     }
       //   }
@@ -107,20 +116,24 @@ export class WebCanvas extends LitElement {
     });
   }
 
+  public printMessage(message: string): void {
+    console.log(message);
+  }
+
   public updateXML(contentFunc: ContentFunc, data?: string) {
     // @ts-ignore ignore the fact that this.getRootNode() is a shadowRoot, Chrome and Edge support this, Safari and Firefox don't
     const range = this.getRootNode().getSelection().getRangeAt(0); // kan ook renderroot zijn
-    const xmlRange = this.xmlStore.createRangeXML(range);
+    const xmlRange = this._logger.xmlStore.createRangeXML(range);
     const xmlSelectionRange = contentFunc(xmlRange, data);
-    this.xmlStore.apply();
+    this._logger.xmlStore.apply();
     this._restoreSelection(xmlSelectionRange);
   }
 
   public addNewContent(data?: string) {
-    const xmlRange = this.xmlStore.createRangeXML(this._logger.xmlRange);
+    const xmlRange = this._logger.xmlStore.createRangeXML(this._logger.xmlRange);
 
     //create new div
-    const newContent = this.xmlStore.xmlDocument.createElement('div');
+    const newContent = this._logger.xmlStore.xmlDocument.createElement('div');
     newContent.innerHTML = data;
 
     const upperParentNode = getUpperParent(xmlRange);
@@ -139,12 +152,12 @@ export class WebCanvas extends LitElement {
       startOffset: 0
     };
 
-    this.xmlStore.apply();
+    this._logger.xmlStore.apply();
     this._restoreSelection(xmlSelectionRange);
   }
 
   public editContent(el: Element, value?: string) {
-    const xmlRange = this.xmlStore.createRangeXML(this._logger.xmlRange);
+    const xmlRange = this._logger.xmlStore.createRangeXML(this._logger.xmlRange);
     const xmlEl = findElement(xmlRange, el.nodeName);
     xmlEl.outerHTML = value;
 
@@ -156,7 +169,7 @@ export class WebCanvas extends LitElement {
       startOffset: 0
     };
 
-    this.xmlStore.apply();
+    this._logger.xmlStore.apply();
     this._restoreSelection(xmlSelectionRange);
   }
 
@@ -172,7 +185,7 @@ export class WebCanvas extends LitElement {
 
   // ------------------ PRIVATE ------------------
 
-  private _initializeCanvases(canvasesXML: Element[]) {
+  public initializeCanvases(canvasesXML: Element[]) {
     this.canvases = canvasesXML.map((canvas: Element) => this._getHTMLNode(canvas));
     canvasesXML.forEach((canvas: Element) => canvas.setAttribute('contenteditable', ''));
     this.canvases.forEach((canvas: HTMLElement) => {
@@ -189,13 +202,15 @@ export class WebCanvas extends LitElement {
       // style, just for visibility in tests and such
       // canvas.style.cssText = 'display:block;border:1px solid #000000;padding:2px;width:auto;height:100%';
     });
+
+    this._initializeRoot();
   }
 
   // private _mouseUpHandler(e: MouseEvent) {
   //   e.stopImmediatePropagation();
   //   const selection = window.getSelection();
   //   const range = selection.getRangeAt(0);
-  //   const xmlRange = this.xmlStore.getRangeXML(range);
+  //   const xmlRange = this._logger.xmlStore.getRangeXML(range);
   //   this._logger.xmlRange = xmlRange;
 
   //   if (selection.type === 'Range') {
@@ -218,18 +233,18 @@ export class WebCanvas extends LitElement {
 
     // check if selection is in canvas
     if (this.canvases.some(canvas => canvas.contains(focusNode))) {
-      const xmlRange = this.xmlStore.createRangeXML(range);
+      const xmlRange = this._logger.xmlStore.createRangeXML(range);
       this._logger.xmlRange = xmlRange;
 
       let node = range.commonAncestorContainer;
-      let element = node.nodeType === Node.TEXT_NODE ? node.parentElement : node as HTMLElement;
+      let element = node.nodeType === Node.TEXT_NODE ? node.parentElement : (node as HTMLElement);
 
       this.activeElement?.removeAttribute('style');
       this.activeElement = element;
       element.style.setProperty('--anchor-name', '--activeElement');
 
       this._dispatchCanvasSelectionChange({
-        canvas: element.closest("[contenteditable]"),
+        canvas: element.closest('[contenteditable]'),
         range: {
           startOffset: xmlRange.startOffset,
           endOffset: xmlRange.endOffset,
@@ -256,7 +271,7 @@ export class WebCanvas extends LitElement {
   }
 
   changeSelection(range: StaticRange) {
-    const rangeXML = this.xmlStore.createRangeXML(range);
+    const rangeXML = this._logger.xmlStore.createRangeXML(range);
     this._logger.xmlRange = rangeXML;
     this._restoreSelection(rangeXML);
   }
@@ -265,26 +280,27 @@ export class WebCanvas extends LitElement {
     if (event.key === 'z' && (event.ctrlKey || event.metaKey)) {
       // check if shift is pressed
       if (!event.shiftKey) {
-        const oldRange = this.xmlStore.undo(this.rootCanvas);
+        const oldRange = this._logger.xmlStore.undo(this.rootCanvas);
         if (!oldRange) return;
-        // this._restoreSelectionBaseOnRoute(
-        //   oldRange.startOffset,
-        //   oldRange.collapsed,
-        //   oldRange.endOffset,
-        //   oldRange.firstRoute,
-        //   oldRange.lastRoute
-        // );
-        // this._restoreSelection({
-        //   ...oldRange,
-        //   startOffset: oldRange.startOffset - 1,
-        //   endOffset: oldRange.endOffset - 1
-        // });
+        this._restoreSelectionBaseOnRoute(
+          oldRange.startOffset,
+          oldRange.collapsed,
+          oldRange.endOffset,
+          oldRange.firstRoute,
+          oldRange.lastRoute
+        );
       }
     }
     if ((event.key === 'y' && event.ctrlKey) || (event.metaKey && event.key === 'z' && event.shiftKey)) {
-      // const oldRange = this.xmlStore.redo(this.divCanvas.value);
-      // if (!oldRange) return;
-      // this._restoreSelection(oldRange);
+      const oldRange = this._logger.xmlStore.redo(this.rootCanvas);
+      if (!oldRange) return;
+      this._restoreSelectionBaseOnRoute(
+        oldRange.startOffset,
+        oldRange.collapsed,
+        oldRange.endOffset,
+        oldRange.firstRoute,
+        oldRange.lastRoute
+      );
     }
   }
 
@@ -311,14 +327,14 @@ export class WebCanvas extends LitElement {
     // Ensure the cursor is inside a paragraph
     // enforceParagraphStructure(range);
 
-    const xmlRange = this.xmlStore.createRangeXML(range);
+    const xmlRange = this._logger.xmlStore.createRangeXML(range);
 
     console.info(inputType, xmlRange, data);
     // This is where the magic happens, the hookInputEvents will call the hook implementation
     let selectionRange = await InputEvents[inputType](this._logger.elms, xmlRange, data);
 
     // Apply the XML changes to the HTML
-    this.xmlStore.apply();
+    this._logger.xmlStore.apply();
 
     // if (ranges.length === 0) {
     //   selectionRange = new StaticRange(xmlRange);
@@ -330,7 +346,7 @@ export class WebCanvas extends LitElement {
   }
 
   private _getHTMLNode(xmlNode: Element | Node): HTMLElement {
-    const xPathXML = this.xmlStore.determineXpathNode(xmlNode).slice(1);
+    const xPathXML = this._logger.xmlStore.determineXpathNode(xmlNode).slice(1);
     const result = document.evaluate(xPathXML, this, null, XPathResult.ANY_TYPE, null).iterateNext() as HTMLElement;
     return result;
   }
@@ -354,35 +370,35 @@ export class WebCanvas extends LitElement {
     selection.addRange(range);
   }
 
-  // private getNodeByRoute(route: number[]) {
-  //   let nodeIndex;
-  //   let node = this.rootCanvas;
-  //   route = route.slice();
-  //   while (route.length > 0) {
-  //     nodeIndex = route.splice(0, 1)[0];
-  //     node = (node.childNodes ? node.childNodes[nodeIndex] : undefined) as HTMLElement;
-  //   }
-  //   return node;
-  // }
+  private getNodeByRoute(route: number[]) {
+    let nodeIndex;
+    let node = this.rootCanvas;
+    route = route.slice();
+    while (route.length > 0) {
+      nodeIndex = route.splice(0, 1)[0];
+      node = (node.childNodes ? node.childNodes[nodeIndex] : undefined) as HTMLElement;
+    }
+    return node;
+  }
 
-  // private _restoreSelectionBaseOnRoute(
-  //   startOffset: number,
-  //   collapsed: boolean,
-  //   endOffset: number,
-  //   firstRoute: number[],
-  //   lastRoute: number[]
-  // ) {
-  //   if (!firstRoute?.length || !lastRoute?.length) return;
-  //   const startContainer = this.getNodeByRoute(firstRoute);
-  //   const endContainer = this.getNodeByRoute(lastRoute);
-  //   const range = new Range();
-  //   range.setStart(startContainer, Math.max(0, startOffset));
-  //   range.setEnd(endContainer, collapsed ? Math.max(0, startOffset) : Math.max(0, endOffset));
+  private _restoreSelectionBaseOnRoute(
+    startOffset: number,
+    collapsed: boolean,
+    endOffset: number,
+    firstRoute: number[],
+    lastRoute: number[]
+  ) {
+    if (!firstRoute?.length || !lastRoute?.length) return;
+    const startContainer = this.getNodeByRoute(firstRoute);
+    const endContainer = this.getNodeByRoute(lastRoute);
+    const range = new Range();
+    range.setStart(startContainer, Math.max(0, startOffset));
+    range.setEnd(endContainer, collapsed ? Math.max(0, startOffset) : Math.max(0, endOffset));
 
-  //   // @ts-ignore ignore the fact that this.getRootNode() is a shadowRoot, Chrome and Edge support this, Safari and Firefox don't
-  //   const selection = this.getRootNode().getSelection();
+    // @ts-ignore ignore the fact that this.getRootNode() is a shadowRoot, Chrome and Edge support this, Safari and Firefox don't
+    const selection = this.getRootNode().getSelection();
 
-  //   selection.removeAllRanges();
-  //   selection.addRange(range);
-  // }
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
 }

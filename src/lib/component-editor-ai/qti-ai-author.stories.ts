@@ -14,10 +14,12 @@ import './actions/meerKeuze';
 import './components/ai';
 import './components/panels/panel-handler';
 
-import type { WebCanvas, WebContentEditor, XmlStore } from '@editor/content';
+import type { WebCanvas, WebContentEditor, XMLStore,  } from '@editor/content';
 import type { InfoCanvas } from '@editor/content-addons';
 
 export default {
+  title: 'NextGen',
+
   parameters: {
     layout: 'fullscreen',
     backgrounds: { default: 'light' }
@@ -27,7 +29,6 @@ export default {
 export const NextGen = {
   render: () => {
     const webContentEditor = createRef<WebContentEditor>();
-    const xmlStore = createRef<XmlStore>();
     const webCanvas = createRef<WebCanvas>();
     const infoCanvas = createRef<InfoCanvas>();
     const xmlString = createRef<HTMLPreElement>();

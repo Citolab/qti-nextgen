@@ -1,8 +1,9 @@
 import { LitElement, html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
-import { Diff } from '../../../component-editor';
+import { Diff, signalPatch } from '../../../component-editor';
 import { InfoCanvas } from '../info-canvas';
+import { Signal } from '@lit-labs/signals';
 
 @customElement('error-canvas')
 export class ErrorCanvasElement extends LitElement {
@@ -40,9 +41,13 @@ export class ErrorCanvasElement extends LitElement {
     // `);
     // this.closest('web-content-editor').parentElement.getRootNode().adoptedStyleSheets.push(sheet);
 
-    this.infoCanvas.addEventListener('patched', (event: Event & { detail: Diff[] }) => {
-      this.patch(event.detail);
+    const watcherPatch = new Signal.subtle.Watcher(async () => {
+      await 0; // Notify callbacks are not allowed to access signals synchronously
+      this.patch(signalPatch.get());
+      watcherPatch.watch(); // Watchers have to be re-enabled after they run:
     });
+    watcherPatch.watch(signalPatch);
+    
     this.infoCanvas.addEventListener('click', (e: MouseEvent) => {
       e.preventDefault();
       const el = document.elementsFromPoint(e.clientX, e.clientY);
