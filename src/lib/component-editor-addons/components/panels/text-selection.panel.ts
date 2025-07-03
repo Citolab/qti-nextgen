@@ -26,7 +26,7 @@ export class TextSelectionPanel extends LitElement {
   constructor() {
     super();
 
-    this.infoCanvas = this.closest('web-content-editor').querySelector('info-canvas') as InfoCanvas;
+    this.infoCanvas = this.closest('web-content-editor').querySelector('web-canvas') as InfoCanvas;
 
     this.infoCanvas.addEventListener('canvas-selectionchange', (e: CustomEvent) => {
       console.log(e.detail.range);

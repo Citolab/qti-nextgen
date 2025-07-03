@@ -3,7 +3,7 @@ import { createRef, ref } from 'lit-html/directives/ref.js';
 import { within, userEvent, expect } from 'storybook/test';
 
 import './index';
-// import './style.css';
+import './style.css'; 
 
 import './components/selection-logger';
 

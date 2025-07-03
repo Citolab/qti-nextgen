@@ -26,7 +26,7 @@ export class ElementModifierPanel extends LitElement {
 
   constructor() {
     super();
-    this.infoCanvas = this.closest('web-content-editor').querySelector('info-canvas') as InfoCanvas;
+    this.infoCanvas = this.closest('web-content-editor').querySelector('web-canvas') as InfoCanvas;
 
     this.infoCanvas.addEventListener('mousedown', (e: MouseEvent) => {
       const clickedOnBefore = e.clientX - (e.target as HTMLElement).getBoundingClientRect().left;
@@ -42,7 +42,7 @@ export class ElementModifierPanel extends LitElement {
 
     const sheet = new CSSStyleSheet();
     sheet.replaceSync(`
-    info-canvas > ${xmlRootNodeName} [part="canvas"] > * {
+    web-canvas > ${xmlRootNodeName} [part="canvas"] > * {
       position: relative;
       pointer-events: none;
       &:before{
@@ -51,6 +51,11 @@ export class ElementModifierPanel extends LitElement {
         top: 0px;
         z-index: 40;
         display: block;
+        font-size: 1.25rem;
+        width: 1.25rem;
+        height: 1.25rem;
+        vertical-align: middle;
+        background: white;
         cursor: pointer;
         padding-right: 0.25rem;
         --tw-text-opacity: 1;

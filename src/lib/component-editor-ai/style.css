@@ -23,7 +23,8 @@ web-canvas {
 }
 
 div.error {
-  @apply -z-10 origin-center scale-125 rounded-sm border bg-red-200;
+  @apply -z-10 origin-center scale-125 border border-b-red-500;
+  
 }
 
 qti-simple-choice {

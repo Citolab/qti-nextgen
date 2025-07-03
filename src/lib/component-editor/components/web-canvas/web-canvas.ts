@@ -7,7 +7,6 @@ import { XmlSelection, xmlSelectionContext } from '../../context/selection';
 import { Diff } from '../../src/types';
 import * as InputEvents from './input-events';
 import { xmlRootNodeName } from '../../elements/this-is-the-root-tag';
-import { Signal } from '@lit-labs/signals';
 import { canvasesContext, patchContext } from '../web-content-editor';
 
 @customElement('web-canvas')
@@ -40,7 +39,7 @@ export class WebCanvas extends LitElement {
   private patchConsumer = new ContextConsumer(this, {
     context: patchContext,
     subscribe: true,
-    callback: this._onPatchContextChanged.bind(this),
+    callback: this._onPatchContextChanged.bind(this)
   });
 
   private _onPatchContextChanged(value: Diff[]) {
@@ -49,21 +48,20 @@ export class WebCanvas extends LitElement {
     }
     this.patch(value);
   }
-    private patchCanvases = new ContextConsumer(this, {
-      context: canvasesContext,
-      subscribe: true,
-      callback: this._onCanvasesContextChanged.bind(this),
-    });
+  private patchCanvases = new ContextConsumer(this, {
+    context: canvasesContext,
+    subscribe: true,
+    callback: this._onCanvasesContextChanged.bind(this)
+  });
 
-    private _onCanvasesContextChanged(value: Element[]) {
-          if (!value || value.length === 0) {
+  private _onCanvasesContextChanged(value: Element[]) {
+    if (!value || value.length === 0) {
       return;
     }
-      this.initializeCanvases(value);
-    }
-  
-  // ------------------ PUBLIC ------------------
+    this.initializeCanvases(value);
+  }
 
+  // ------------------ PUBLIC ------------------
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -159,7 +157,7 @@ export class WebCanvas extends LitElement {
 
       this.activeElement?.removeAttribute('style');
       this.activeElement = element;
-      element.style.setProperty('--anchor-name', '--activeElement');
+      // element.style.setProperty('--anchor-name', '--activeElement');
 
       this._dispatchCanvasSelectionChange({
         canvas: element.closest('[contenteditable]'),
@@ -245,7 +243,7 @@ export class WebCanvas extends LitElement {
 
     const xmlRange = this._logger.createRangeXML(range);
 
-    console.info(inputType, xmlRange, data);
+    // console.info(inputType, xmlRange, data);
     // This is where the magic happens, the hookInputEvents will call the hook implementation
     let selectionRange = await InputEvents[inputType](this._logger.elms, xmlRange, data);
 

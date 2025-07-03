@@ -1,37 +1,18 @@
 @import 'modern-normalize/modern-normalize.css' layer(base);
 @import 'tailwindcss';
-
+@plugin '@tailwindcss/typography';
 /* @config "../../../tailwind.config.sb.js"; */
 /* @source "../../../src"; */
 
-
-/*
-  The default border color has changed to `currentcolor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
-
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
-@layer base {
-  *,
-  ::after,
-  ::before,
-  ::backdrop,
-  ::file-selector-button {
-    border-color: var(--color-gray-200, currentcolor);
-  }
-}
-
 web-canvas {
   [part='canvas'] {
-    @apply outline-hidden focus:ring-2 focus:ring-offset-8;
+    @apply outline-hidden focus:ring-2 focus:ring-offset-8 prose;
   }
   @apply z-20;
 }
 
 div.error {
-  @apply z-10 origin-center scale-125 rounded-sm border bg-red-200;
+  @apply -z-10 origin-center scale-125 border-l-0 border-t-0 border-r-0 border-2 border-b-red-500;
 }
 
 .two-column {

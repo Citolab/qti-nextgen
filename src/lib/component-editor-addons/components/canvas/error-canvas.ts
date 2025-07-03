@@ -1,9 +1,9 @@
 import { LitElement, html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
-import { Diff, signalPatch } from '../../../component-editor';
+import { Diff, patchContext } from '../../../component-editor';
 import { InfoCanvas } from '../info-canvas';
-import { Signal } from '@lit-labs/signals';
+import { ContextConsumer } from '@lit/context';
 
 @customElement('error-canvas')
 export class ErrorCanvasElement extends LitElement {
@@ -20,12 +20,25 @@ export class ErrorCanvasElement extends LitElement {
   forbiddenWords: string[] = [];
 
   createRenderRoot() {
-    return this.infoCanvas;
+    return this;
   }
 
   constructor() {
     super();
-    this.infoCanvas = this.closest('web-content-editor').querySelector('info-canvas') as InfoCanvas;
+    this.infoCanvas = this.closest('web-content-editor').querySelector('web-canvas') as InfoCanvas;
+  }
+
+  private patchConsumer = new ContextConsumer(this, {
+    context: patchContext,
+    subscribe: true,
+    callback: this._onPatchContextChanged.bind(this)
+  });
+
+  private _onPatchContextChanged(value: Diff[]) {
+    if (!value || value.length === 0) {
+      return;
+    }
+    this.patch(value);
   }
 
   connectedCallback(): void {
@@ -41,14 +54,7 @@ export class ErrorCanvasElement extends LitElement {
     // `);
     // this.closest('web-content-editor').parentElement.getRootNode().adoptedStyleSheets.push(sheet);
 
-    const watcherPatch = new Signal.subtle.Watcher(async () => {
-      await 0; // Notify callbacks are not allowed to access signals synchronously
-      this.patch(signalPatch.get());
-      watcherPatch.watch(); // Watchers have to be re-enabled after they run:
-    });
-    watcherPatch.watch(signalPatch);
-    
-    this.infoCanvas.addEventListener('click', (e: MouseEvent) => {
+    this.addEventListener('click', (e: MouseEvent) => {
       e.preventDefault();
       const el = document.elementsFromPoint(e.clientX, e.clientY);
       const error = el.find((el: HTMLElement) => el.classList.contains('error'));
@@ -85,7 +91,6 @@ export class ErrorCanvasElement extends LitElement {
         // check if the text contains a forbiddenword
         const forbiddenwordsused = this.forbiddenWords.filter(word => text.includes(word));
         // get the index of the forbiddenword
-
         forbiddenwordsused.forEach(forbiddenword => {
           const index = text.indexOf(forbiddenword);
           if (index > -1) {
@@ -110,7 +115,8 @@ export class ErrorCanvasElement extends LitElement {
           html`<div
             part="error"
             class="error"
-            style="position:absolute; z-index:auto; ${styleMap(error.position)}"
+            style="position:absolute; z-index:auto; pointer-events: auto; ${styleMap(error.position)}
+            "
           ></div>`
       )}
     `;
@@ -120,6 +126,9 @@ export class ErrorCanvasElement extends LitElement {
 const rangePositionRelativeToCanvas = (range: Range, canvas: HTMLElement) => {
   const bcRange = range.getBoundingClientRect();
   const bcDiv = canvas.getBoundingClientRect();
+
+  console.log('bcRange', bcRange);
+  console.log('bcDiv', bcDiv);
 
   const position = {
     left: `${bcRange.left - bcDiv.left}px`,

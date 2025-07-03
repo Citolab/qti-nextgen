@@ -10,7 +10,7 @@ export interface EditContext {
   updateXML?: (fn: ContentFunc) => void;
   addNewContent?: (value: string) => void;
   editContent?: (el: Element, value: string) => void;
-  // changeSelection: (range: StaticRange) => void;
+  changeSelection?: (range: StaticRange) => void;
   doc: () => XMLDocument;
   xmlRange: Range | null;
   createRangeXML: (range: StaticRangeInit) => Range | null;

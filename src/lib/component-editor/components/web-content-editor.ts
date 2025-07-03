@@ -20,7 +20,7 @@ import { xPath } from './xml-store/libs/xpath/Xpath';
 // export const signalCanvases = signal([] as Element[]);
 // export const signalSelection = signal(null as StaticRange);
 
-export const patchContext = createContext('signalPatch')
+export const patchContext = createContext('signalPatch');
 export const canvasesContext = createContext<{}>('signalCanvases');
 export const selectionContext = createContext<{}>('signalSelection');
 @customElement('web-content-editor')
@@ -42,6 +42,7 @@ export class WebContentEditor extends LitElement {
   // ------------------ REACTIVE PROPERTIES ------------------
 
   // you can specify a canvas-selector to select multiple canvasses
+  @property({ type: String, reflect: true, attribute: 'canvas-selector' })
   canvasSelector: string = xmlRootNodeName; // default to the root node
 
   @provide({ context: patchContext })
@@ -66,35 +67,31 @@ export class WebContentEditor extends LitElement {
     element: null
   };
 
-  @property({ type: String, reflect: true, attribute: 'myxml' })
-  public xml: string = '';
+  @property({ type: String, reflect: true })
+  public xml: string = null;
 
-  // protected update(changedProperties: PropertyValues): void {
-  //   super.update(changedProperties);
-  //   // If xml changes, we need to update the XMLStore
-  //   // if (changedProperties.has('xml')) {
-  //   //   this.logger.xmlStore.initializeXML(this.xml);
-  //   // }
+  protected update(changedProperties: PropertyValues): void {
+    super.update(changedProperties);
+    // If xml changes, we need to update the XMLStore
+    if (changedProperties.has('xml')) {
+      //   this.logger.xmlStore.initializeXML(this.xml);
+      this.initializeXML(this.xml);
+    }
 
-  //   this.initializeXML(this.xml);
-
-  //   // If canvasSelector changes, we need to update the XMLStore's canvasSelector
-  //   // if (changedProperties.has('canvasSelector')) {
-  //   //   this.logger.xmlStore.canvasSelector = this.canvasSelector;
-  //   // }
-  //   this.canvasSelector = this.canvasSelector || xmlRootNodeName; // Ensure canvasSelector is set
-  // }
+    // If canvasSelector changes, we need to update the XMLStore's canvasSelector
+    // if (changedProperties.has('canvasSelector')) {
+    //   this.logger.xmlStore.canvasSelector = this.canvasSelector;
+    // }
+    this.canvasSelector = this.canvasSelector || xmlRootNodeName; // Ensure canvasSelector is set
+  }
 
   private diffDOM = new DiffDOM({
     preDiffApply: info => info.diff.action === 'removeAttribute' && true
   });
 
-
-
   connectedCallback(): void {
     super.connectedCallback();
-    document.addEventListener('selectionchange', this._selectionChangedHandler.bind(this));
-
+    // document.addEventListener('selectionchange', this._selectionChangedHandler.bind(this));
   }
 
   // ------------------ PUBLIC ------------------
@@ -137,19 +134,20 @@ export class WebContentEditor extends LitElement {
     this.apply(false);
 
     // this.dispatchEvent(new CanvasesEvent(this.xmlCanvasElements));
+    console.log(this.xmlCanvasElements);
     this.signalCanvases = this.xmlCanvasElements;
 
     this._observeXMLMutations();
   }
 
-  // public updateXML(contentFunc: ContentFunc, data?: string) {
-  //   // @ts-ignore ignore the fact that this.getRootNode() is a shadowRoot, Chrome and Edge support this, Safari and Firefox don't
-  //   const range = this.getRootNode().getSelection().getRangeAt(0); // kan ook renderroot zijn
-  //   const xmlRange = this.createRangeXML(range);
-  //   const xmlSelectionRange = contentFunc(xmlRange, data);
-  //   this.apply();
-  //   signalSelection.set(xmlSelectionRange);
-  // }
+  public updateXML(contentFunc: ContentFunc, data?: string) {
+    // @ts-ignore ignore the fact that this.getRootNode() is a shadowRoot, Chrome and Edge support this, Safari and Firefox don't
+    const range = this.getRootNode().getSelection().getRangeAt(0); // kan ook renderroot zijn
+    const xmlRange = this.createRangeXML(range);
+    const xmlSelectionRange = contentFunc(xmlRange, data);
+    this.apply();
+    this.signalSelection = xmlSelectionRange;
+  }
 
   // public addNewContent(data?: string) {
   //   const xmlRange = this.createRangeXML(this.logger.xmlRange);
@@ -195,11 +193,11 @@ export class WebContentEditor extends LitElement {
   //   signalSelection.set(xmlSelectionRange);
   // }
 
-  // changeSelection(range: StaticRange) {
-  //   const rangeXML = this.createRangeXML(range);
-  //   this.logger.xmlRange = rangeXML;
-  //   signalSelection.set(range);
-  // }
+  changeSelection(range: StaticRange) {
+    const rangeXML = this.createRangeXML(range);
+    this.logger.xmlRange = rangeXML;
+    this.signalSelection = range;
+  }
 
   public findXMLNode(node: Node): Node | Element | null {
     const regexa = new RegExp(`(${xmlRootNodeName}.*)`);
@@ -303,7 +301,7 @@ export class WebContentEditor extends LitElement {
         this.dispatchEvent(
           new XmlUpdateEvent({
             mutation: mutation,
-            xml: formatXml(this.xmlDocument.documentElement.firstElementChild)
+            xml: formatXml(this.xmlDocument.documentElement)
           })
         );
       });
@@ -339,7 +337,7 @@ export class WebContentEditor extends LitElement {
     return {
       elms: new Map<string, MyModuleInterface>(),
       // web-canvas functions
-      // updateXML: (fn: (xmlRange: Range) => StaticRange) => this.updateXML(fn),
+      updateXML: (fn: (xmlRange: Range) => StaticRange) => this.updateXML(fn),
 
       // info-canvas functions
       applyDiffs: (docEl, diffs: Diff[]) => this.diffDOM.apply(docEl, diffs),
@@ -355,63 +353,13 @@ export class WebContentEditor extends LitElement {
       canvases: () => this.xmlCanvasElements,
       // addNewContent: value => this.addNewContent(value),
       // editContent: (el, value) => this.editContent(el, value),
-      // changeSelection: range => this.webCanvas.changeSelection(range),
+      changeSelection: range => this.changeSelection(range),
 
       createRangeXML: (range: StaticRangeInit) => this.createRangeXML(range),
       apply: () => this.apply(),
 
       xmlRange: null
     };
-  }
-
-  private _selectionChangedHandler(_: CustomEvent) {
-    // check if valid selection
-    if (document.getSelection().rangeCount === 0) {
-      this._dispatchCanvasSelectionChange(null);
-      return;
-    }
-
-    const selection = document.getSelection(); // this.getRootNode().getSelection();
-    const focusNode = selection.focusNode;
-    const range = selection.getRangeAt(0);
-
-    // check if selection is in canvas
-    if (this.signalCanvases.some(canvas => canvas.contains(focusNode))) {
-      const xmlRange = this.createRangeXML(range);
-      this.logger.xmlRange = xmlRange;
-
-      let node = range.commonAncestorContainer;
-      let element = node.nodeType === Node.TEXT_NODE ? node.parentElement : (node as HTMLElement);
-
-      this.activeElement?.removeAttribute('style');
-      this.activeElement = element;
-      element.style.setProperty('--anchor-name', '--activeElement');
-
-      this._dispatchCanvasSelectionChange({
-        canvas: element.closest('[contenteditable]'),
-        range: {
-          startOffset: xmlRange.startOffset,
-          endOffset: xmlRange.endOffset,
-          startContainer: xmlRange.startContainer,
-          endContainer: xmlRange.endContainer
-        },
-
-        collapsed: xmlRange.collapsed,
-        element: xmlRange.commonAncestorContainer
-      });
-    } else {
-      this._dispatchCanvasSelectionChange(null);
-    }
-  }
-
-  private _dispatchCanvasSelectionChange(detail: any) {
-    this.dispatchEvent(
-      new CustomEvent('canvas-selectionchange', {
-        detail,
-        composed: true,
-        bubbles: true
-      })
-    );
   }
 
   /**

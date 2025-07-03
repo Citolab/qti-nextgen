@@ -1,9 +1,7 @@
-import { consume } from '@lit/context';
+import { consume, ContextConsumer } from '@lit/context';
 import { LitElement } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { Diff, EditContext, editContext, signalPatch } from '../../../component-editor';
-import { InfoCanvas } from '../info-canvas';
-import { Signal } from '@lit-labs/signals';
+import { canvasesContext, Diff, EditContext, editContext, patchContext } from '../../../component-editor';
 
 @customElement('pilot-canvas')
 export class PilotCanvas extends LitElement {
@@ -11,11 +9,31 @@ export class PilotCanvas extends LitElement {
   @property({ attribute: false })
   protected _logger?: EditContext;
 
-  infoCanvas: InfoCanvas;
+  private patchConsumer = new ContextConsumer(this, {
+    context: patchContext,
+    subscribe: true,
+    callback: this._onPatchContextChanged.bind(this)
+  });
+  canvases: HTMLElement[];
 
-  constructor() {
-    super();
-    this.infoCanvas = this.closest('web-content-editor').querySelector('info-canvas') as InfoCanvas;
+  private _onPatchContextChanged(value: Diff[]) {
+    if (!value || value.length === 0) {
+      return;
+    }
+    this.patch(value);
+  }
+
+  private canvasesConsumer = new ContextConsumer(this, {
+    context: canvasesContext,
+    subscribe: true,
+    callback: this._onCanvasesContextChanged.bind(this)
+  });
+
+  private _onCanvasesContextChanged(value: HTMLElement[]) {
+    if (!value || value.length === 0) {
+      return;
+    }
+    this.canvases = value;
   }
 
   connectedCallback(): void {
@@ -30,17 +48,10 @@ export class PilotCanvas extends LitElement {
     }`);
     (this.closest('web-content-editor').parentElement.getRootNode() as Document).adoptedStyleSheets.push(sheet);
 
-    const watcherPatch = new Signal.subtle.Watcher(async () => {
-      await 0; // Notify callbacks are not allowed to access signals synchronously
-      this.patch(signalPatch.get());
-      watcherPatch.watch(); // Watchers have to be re-enabled after they run:
-    });
-    watcherPatch.watch(signalPatch);
-
-    this.infoCanvas.addEventListener('keydown', (e: KeyboardEvent) => {
+    document.addEventListener('keydown', (e: KeyboardEvent) => {
       if (e.key === 'Tab') {
         e.preventDefault();
-        this.infoCanvas.canvases.forEach(canvas => {
+        this.canvases.forEach(canvas => {
           const pilots = canvas.querySelectorAll('[data-pilot]');
           pilots.length > 0 && e.preventDefault();
           pilots.forEach((el: Element) => {
@@ -66,7 +77,10 @@ export class PilotCanvas extends LitElement {
   }
 
   public patch(diffs: Diff[]) {
-    this.infoCanvas.canvases.forEach((canvas: Element) => {
+    if (!this.canvases || this.canvases.length === 0) {
+      return;
+    }
+    this.canvases.forEach((canvas: Element) => {
       Array.from(canvas.children).forEach((el: Element) => {
         if (el?.textContent?.toLowerCase() === 'genereer') {
           el.setAttribute('data-pilot', ` supervette ai dingen`);

@@ -1,5 +1,6 @@
 @import 'modern-normalize/modern-normalize.css' layer(base);
 @import 'tailwindcss';
+@plugin '@tailwindcss/typography';
 
 web-canvas {
   [part='canvas'] {
@@ -7,14 +8,14 @@ web-canvas {
   }
 }
 
-*:not(:has(*)) {
+/* *:not(:has(*)) {
   outline:1px solid red;
 }
 
 *:empty:after {
   content: '';
   border: 2px solid blue;
-}
+} */
 
 *:empty:before {
   content: '\0a';
