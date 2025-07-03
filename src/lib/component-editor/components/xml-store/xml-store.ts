@@ -8,23 +8,6 @@ import {
 } from './xml-store.functions';
 import { xmlRootNodeName } from '../../elements/this-is-the-root-tag';
 
-export declare class XMLInterface {
-  xmlDocument: XMLDocument;
-  xmlCanvasElements: Element[];
-  canvasSelector: string;
-  xml: string;
-  findXMLNode(node: Node): Node | Element | null;
-  undo(
-    el: Element
-  ): { firstRoute: number[]; lastRoute: number[]; collapsed: boolean; startOffset: number; endOffset: number } | null;
-  redo(
-    el: Element
-  ): { firstRoute: number[]; lastRoute: number[]; startOffset: number; collapsed: boolean; endOffset: number } | null;
-  determineXpathNode(el: Element | Node): string;
-  createRangeXML(range: StaticRangeInit): Range;
-  apply(store?: boolean): void;
-}
-
 export class XMLStore extends EventTarget {
   private _patchAgainstXMLDocument: XMLDocument;
 

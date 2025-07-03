@@ -4,10 +4,9 @@ import { LitElement } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { EditContext, editContext } from '../../context/logger';
 import { XmlSelection, xmlSelectionContext } from '../../context/selection';
-import { ContentFunc, Diff } from '../../src/types';
+import { Diff } from '../../src/types';
 import * as InputEvents from './input-events';
 import { xmlRootNodeName } from '../../elements/this-is-the-root-tag';
-import { findElement, getUpperParent } from '../utilities';
 import { Signal } from '@lit-labs/signals';
 import { signalCanvases, signalPatch } from '../web-content-editor';
 
@@ -29,7 +28,7 @@ export class WebCanvas extends LitElement {
   updated(changedProperties: Map<string | number | symbol, unknown>) {
     super.updated(changedProperties);
     if (changedProperties.has('_logger')) {
-      console.log('_logger changed:', this._logger);
+      // console.log('_logger changed:', this._logger);
     }
   }
 
@@ -46,8 +45,6 @@ export class WebCanvas extends LitElement {
 
   connectedCallback(): void {
     super.connectedCallback();
-
-    this.addEventListener('xml-store-mutation', this.mutationHandler);
 
     this.rootCanvas = document.createElement(xmlRootNodeName);
     // this.rootNode = this.closest('web-content-editor').getRootNode() as Document | ShadowRoot;
@@ -68,109 +65,8 @@ export class WebCanvas extends LitElement {
     watcherCanvases.watch(signalCanvases);
   }
 
-  disconnectedCallback(): void {
-    this.removeEventListener('xml-store-mutation', this.mutationHandler);
-  }
-
-  private mutationHandler(event: CustomEvent<{ mutation: MutationRecord }>) {
-    const mutationRecord = event.detail.mutation;
-
-    if (mutationRecord.type === 'characterData') {
-      // if (mutationRecord.target.nodeValue.trim() === '') {
-      //   // console.log('[mo] text made empty');
-      //   const parentElement = mutationRecord.target.parentElement;
-      //   // parentElement.appendChild(mutationRecord.target.ownerDocument.createElement('br'));
-      //   parentElement.removeChild(mutationRecord.target);
-      //   this._logger.xmlStore.apply();
-      // }
-    }
-    mutationRecord.removedNodes.forEach(node => {
-      // if (node.nodeName === '#text') {
-      //   // console.log('[mo] removed text', node);
-      //   const elm = this._logger.elms.get(node.nodeName.toLowerCase());
-      //   if (elm && elm.mutateEmpty) {
-      //     const xmlSelectionRange = elm.mutateEmpty(mutationRecord.target);
-      //     if (xmlSelectionRange) {
-      //       this._logger.xmlStore.apply();
-      //       this._restoreSelection(xmlSelectionRange);
-      //     }
-      //   }
-      // } else {
-      //   // console.log('[mo] removed element', node);
-      // }
-    });
-    mutationRecord.addedNodes.forEach(node => {
-      // if (node.nodeName === '#text') {
-      //   // console.log('[mo] added text', node);
-      // } else {
-      //   // console.log('[mo] added element', node);
-      //   const elm = this._logger.elms.get(node.nodeName.toLowerCase());
-      //   if (elm && elm.mutateAdded) {
-      //     const xmlSelectionRange = elm.mutateAdded(node);
-      //     if (xmlSelectionRange) {
-      //       this._logger.xmlStore.apply();
-      //       this._restoreSelection(xmlSelectionRange);
-      //     }
-      //   }
-      // }
-    });
-  }
-
   public printMessage(message: string): void {
     console.log(message);
-  }
-
-  public updateXML(contentFunc: ContentFunc, data?: string) {
-    // @ts-ignore ignore the fact that this.getRootNode() is a shadowRoot, Chrome and Edge support this, Safari and Firefox don't
-    const range = this.getRootNode().getSelection().getRangeAt(0); // kan ook renderroot zijn
-    const xmlRange = this._logger.xmlStore.createRangeXML(range);
-    const xmlSelectionRange = contentFunc(xmlRange, data);
-    this._logger.xmlStore.apply();
-    this._restoreSelection(xmlSelectionRange);
-  }
-
-  public addNewContent(data?: string) {
-    const xmlRange = this._logger.xmlStore.createRangeXML(this._logger.xmlRange);
-
-    //create new div
-    const newContent = this._logger.xmlStore.xmlDocument.createElement('div');
-    newContent.innerHTML = data;
-
-    const upperParentNode = getUpperParent(xmlRange);
-    //place in new html tag after current position or replace when empty
-    if (upperParentNode.textContent.trim()) {
-      getUpperParent(xmlRange).after(newContent);
-    } else {
-      getUpperParent(xmlRange).replaceWith(newContent);
-    }
-
-    const xmlSelectionRange = {
-      endContainer: newContent,
-      endOffset: 0,
-      collapsed: true,
-      startContainer: newContent,
-      startOffset: 0
-    };
-
-    this._logger.xmlStore.apply();
-    this._restoreSelection(xmlSelectionRange);
-  }
-
-  public editContent(el: Element, value?: string) {
-    const xmlRange = this._logger.xmlStore.createRangeXML(this._logger.xmlRange);
-    const xmlEl = findElement(xmlRange, el.nodeName);
-    xmlEl.outerHTML = value;
-
-    const xmlSelectionRange = {
-      endContainer: xmlEl,
-      endOffset: 0,
-      collapsed: true,
-      startContainer: xmlEl,
-      startOffset: 0
-    };
-
-    this._logger.xmlStore.apply();
-    this._restoreSelection(xmlSelectionRange);
   }
 
   private _initializeRoot() {
@@ -233,7 +129,7 @@ export class WebCanvas extends LitElement {
 
     // check if selection is in canvas
     if (this.canvases.some(canvas => canvas.contains(focusNode))) {
-      const xmlRange = this._logger.xmlStore.createRangeXML(range);
+      const xmlRange = this._logger.createRangeXML(range);
       this._logger.xmlRange = xmlRange;
 
       let node = range.commonAncestorContainer;
@@ -270,36 +166,34 @@ export class WebCanvas extends LitElement {
     );
   }
 
-  changeSelection(range: StaticRange) {
-    const rangeXML = this._logger.xmlStore.createRangeXML(range);
-    this._logger.xmlRange = rangeXML;
-    this._restoreSelection(rangeXML);
-  }
-
   private _keydownHandler(event: KeyboardEvent) {
     if (event.key === 'z' && (event.ctrlKey || event.metaKey)) {
       // check if shift is pressed
       if (!event.shiftKey) {
-        const oldRange = this._logger.xmlStore.undo(this.rootCanvas);
-        if (!oldRange) return;
+        const eventUndo = new UndoEvent(this.rootCanvas);
+        this.dispatchEvent(eventUndo);
+        // const oldRange = this._logger.xmlStore.undo(this.rootCanvas);
+        if (!eventUndo.range) return;
         this._restoreSelectionBaseOnRoute(
-          oldRange.startOffset,
-          oldRange.collapsed,
-          oldRange.endOffset,
-          oldRange.firstRoute,
-          oldRange.lastRoute
+          eventUndo.range.startOffset,
+          eventUndo.range.collapsed,
+          eventUndo.range.endOffset,
+          eventUndo.range.firstRoute,
+          eventUndo.range.lastRoute
         );
       }
     }
     if ((event.key === 'y' && event.ctrlKey) || (event.metaKey && event.key === 'z' && event.shiftKey)) {
-      const oldRange = this._logger.xmlStore.redo(this.rootCanvas);
-      if (!oldRange) return;
+      const eventRedo = new RedoEvent(this.rootCanvas);
+      this.dispatchEvent(eventRedo);
+      // const oldRange = this._logger.xmlStore.undo(this.rootCanvas);
+      if (!eventRedo.range) return;
       this._restoreSelectionBaseOnRoute(
-        oldRange.startOffset,
-        oldRange.collapsed,
-        oldRange.endOffset,
-        oldRange.firstRoute,
-        oldRange.lastRoute
+        eventRedo.range.startOffset,
+        eventRedo.range.collapsed,
+        eventRedo.range.endOffset,
+        eventRedo.range.firstRoute,
+        eventRedo.range.lastRoute
       );
     }
   }
@@ -327,14 +221,14 @@ export class WebCanvas extends LitElement {
     // Ensure the cursor is inside a paragraph
     // enforceParagraphStructure(range);
 
-    const xmlRange = this._logger.xmlStore.createRangeXML(range);
+    const xmlRange = this._logger.createRangeXML(range);
 
     console.info(inputType, xmlRange, data);
     // This is where the magic happens, the hookInputEvents will call the hook implementation
     let selectionRange = await InputEvents[inputType](this._logger.elms, xmlRange, data);
 
     // Apply the XML changes to the HTML
-    this._logger.xmlStore.apply();
+    this._logger.apply();
 
     // if (ranges.length === 0) {
     //   selectionRange = new StaticRange(xmlRange);
@@ -346,7 +240,7 @@ export class WebCanvas extends LitElement {
   }
 
   private _getHTMLNode(xmlNode: Element | Node): HTMLElement {
-    const xPathXML = this._logger.xmlStore.determineXpathNode(xmlNode).slice(1);
+    const xPathXML = this._logger.xpath(xmlNode).slice(1);
     const result = document.evaluate(xPathXML, this, null, XPathResult.ANY_TYPE, null).iterateNext() as HTMLElement;
     return result;
   }
@@ -400,5 +294,27 @@ export class WebCanvas extends LitElement {
 
     selection.removeAllRanges();
     selection.addRange(range);
+  }
+}
+
+export class UndoEvent extends Event {
+  public range: StaticRange | null = null;
+  public static eventName = 'undo';
+  constructor(public canvas: HTMLElement) {
+    super(UndoEvent.eventName, { bubbles: true, composed: true });
+  }
+}
+
+export class RedoEvent extends Event {
+  public range: StaticRange | null = null;
+  public static eventName = 'redo';
+  constructor(public canvas: HTMLElement) {
+    super(RedoEvent.eventName, { bubbles: true, composed: true });
+  }
+}
+
+export class PatchEvent extends Event {
+  constructor() {
+    super('patch', { bubbles: true, composed: true });
   }
 }

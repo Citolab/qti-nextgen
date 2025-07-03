@@ -27,24 +27,24 @@ export const Core: Story = {
     const xmlString = createRef<HTMLPreElement>();
 
     const loadXML = () => {
-      webContentEditor.value?.logger.xmlStore.initializeXML(args.xml);
+      webContentEditor.value.initializeXML(args.xml);
     };
 
     return html`
       <web-content-editor
         ${ref(webContentEditor)}
-        @xml-store-xml=${e => (xmlString.value.textContent = e.detail.xml)}
+        @xml-store-xml=${e => (xmlString.value.textContent = e.xml.xml)}
         supported-elements="p this-is-the-root-tag"
         class="grid grid-cols-2"
       >
         <web-canvas
           class="col-span-2 border-gray-300 bg-white p-4 shadow outline-offset-2 outline-green-400 focus-within:outline-2"
         ></web-canvas>
-                <div>
+        
           <pre class="block overflow-x-auto border p-4 text-xs text-gray-600" ${ref(xmlString)}></pre>
-        </div>
+        
           <selection-logger></selection-logger>
-        </div>
+        
       </web-content-editor>
 
       <button @click=${() => loadXML()}>load XML</button>
