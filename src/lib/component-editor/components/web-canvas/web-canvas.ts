@@ -1,125 +1,76 @@
-import { consume, ContextConsumer } from '@lit/context';
+import { ContextConsumer } from '@lit/context';
 import { DiffDOM } from 'diff-dom';
 import { LitElement } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
-import { EditContext, editContext } from '../../context/logger';
-import { XmlSelection, xmlSelectionContext } from '../../context/selection';
+import { customElement } from 'lit/decorators.js';
 import { Diff } from '../../src/types';
-import * as InputEvents from './input-events';
 import { xmlRootNodeName } from '../../elements/this-is-the-root-tag';
 import { canvasesContext, patchContext } from '../web-content-editor';
+import { xPath } from '../xml-store/libs/xpath/Xpath';
 
 @customElement('web-canvas')
 export class WebCanvas extends LitElement {
-  createRenderRoot = () => this; // disable shadowRoot for XPATH and styling
+  createRenderRoot = () => this;
 
-  public rootCanvas: HTMLElement;
+  rootCanvas: HTMLElement;
   canvases: HTMLElement[] = [];
 
   private _diffDOM: DiffDOM = new DiffDOM({
     preDiffApply: info => info.diff.action === 'removeAttribute' && true
   });
 
-  @consume({ context: editContext, subscribe: true })
-  @property({ attribute: false })
-  public _logger?: EditContext;
-
-  updated(changedProperties: Map<string | number | symbol, unknown>) {
-    super.updated(changedProperties);
-    if (changedProperties.has('_logger')) {
-      // console.log('_logger changed:', this._logger);
-    }
-  }
-
-  @consume({ context: xmlSelectionContext, subscribe: true })
-  @property({ attribute: false })
-  public _selection?: XmlSelection;
   activeElement: HTMLElement;
 
-  private patchConsumer = new ContextConsumer(this, {
-    context: patchContext,
-    subscribe: true,
-    callback: this._onPatchContextChanged.bind(this)
-  });
+  constructor() {
+    super();
 
-  private _onPatchContextChanged(value: Diff[]) {
-    if (!value || value.length === 0) {
-      return;
-    }
-    this.patch(value);
+    new ContextConsumer(this, {
+      context: patchContext,
+      subscribe: true,
+      callback: (diffs: Diff[]) => diffs?.length && this.patch(diffs)
+    });
+    new ContextConsumer(this, {
+      context: canvasesContext,
+      subscribe: true,
+      callback: (canvases: Element[]) => canvases?.length && this.initializeCanvases(canvases)
+    });
   }
-  private patchCanvases = new ContextConsumer(this, {
-    context: canvasesContext,
-    subscribe: true,
-    callback: this._onCanvasesContextChanged.bind(this)
-  });
-
-  private _onCanvasesContextChanged(value: Element[]) {
-    if (!value || value.length === 0) {
-      return;
-    }
-    this.initializeCanvases(value);
-  }
-
-  // ------------------ PUBLIC ------------------
 
   connectedCallback(): void {
     super.connectedCallback();
-
     this.rootCanvas = document.createElement(xmlRootNodeName);
-    // this.rootNode = this.closest('web-content-editor').getRootNode() as Document | ShadowRoot;
     this.prepend(this.rootCanvas);
-
-    // const watcherPatch = new Signal.subtle.Watcher(async () => {
-    //   await 0; // Notify callbacks are not allowed to access signals synchronously
-    //   this.patch(signalPatch.get());
-    //   watcherPatch.watch(); // Watchers have to be re-enabled after they run:
-    // });
-    // watcherPatch.watch(signalPatch);
-
-    // const watcherCanvases = new Signal.subtle.Watcher(async () => {
-    //   await 0; // Notify callbacks are not allowed to access signals synchronously
-    //   this.initializeCanvases(signalCanvases.get());
-    //   watcherCanvases.watch(); // Watchers have to be re-enabled after they run:
-    // });
-    // watcherCanvases.watch(signalCanvases);
   }
 
-  public printMessage(message: string): void {
-    console.log(message);
-  }
-
-  private _initializeRoot() {
-    document.addEventListener('selectionchange', this._selectionChangedHandler.bind(this));
-    this.rootCanvas.addEventListener('beforeinput', this._beforeInputHandler.bind(this));
-    this.rootCanvas.addEventListener('keydown', this._keydownHandler.bind(this));
-  }
-
-  public patch(diffs: Diff[]) {
+  private patch(diffs: Diff[]) {
     this._diffDOM.apply(this.rootCanvas, diffs);
+    setTimeout(() => {
+      const eventPatched = new PatchedEvent();
+      this.dispatchEvent(eventPatched);
+    }, 100);
   }
 
   // ------------------ PRIVATE ------------------
 
   public initializeCanvases(canvasesXML: Element[]) {
     this.canvases = canvasesXML.map((canvas: Element) => this._getHTMLNode(canvas));
-    canvasesXML.forEach((canvas: Element) => canvas.setAttribute('contenteditable', ''));
     this.canvases.forEach((canvas: HTMLElement) => {
       canvas.setAttribute('part', 'canvas');
       canvas.setAttribute('contenteditable', '');
-      // canvas.setAttribute('spellcheck', 'false');
-      // canvas.setAttribute('tabindex', '0');
-      // canvas.setAttribute('role', 'textbox');
-      // canvas.setAttribute('aria-multiline', 'true');
-      // canvas.setAttribute('aria-label', 'Question content');
-      // canvas.setAttribute('aria-label', 'Question content');
+      canvas.setAttribute('spellcheck', 'false');
+      canvas.setAttribute('tabindex', '0');
+      canvas.setAttribute('role', 'textbox');
+      canvas.setAttribute('aria-multiline', 'true');
+      canvas.setAttribute('aria-label', 'Question content');
+      canvas.setAttribute('aria-label', 'Question content');
       canvas.style.whiteSpace = 'pre-wrap';
       canvas.style.whiteSpace = 'break-spaces';
       // style, just for visibility in tests and such
       // canvas.style.cssText = 'display:block;border:1px solid #000000;padding:2px;width:auto;height:100%';
     });
 
-    this._initializeRoot();
+    document.addEventListener('selectionchange', this._selectionChangedHandler.bind(this));
+    this.rootCanvas.addEventListener('beforeinput', this._beforeInputHandler.bind(this));
+    this.rootCanvas.addEventListener('keydown', this._keydownHandler.bind(this));
   }
 
   // private _mouseUpHandler(e: MouseEvent) {
@@ -136,47 +87,41 @@ export class WebCanvas extends LitElement {
   //   }
   // }
 
+  /**
+   * Listen for document selection changes and dispatch exactly one
+   * 'canvas-selectionchange' event at the end, with detail=null if no
+   * valid selection inside a canvas.
+   */
   private _selectionChangedHandler(_: CustomEvent) {
-    // check if valid selection
-    if (document.getSelection().rangeCount === 0) {
-      this._dispatchCanvasSelectionChange(null);
-      return;
+    const selection = document.getSelection();
+    let detail: any = null;
+
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      const focusNode = selection.focusNode;
+      const targetCanvas = this.canvases.find(c => c.contains(focusNode!)) || null;
+
+      if (targetCanvas) {
+        // create XML logging range
+
+        // figure out the element to style
+        const ancestor = range.commonAncestorContainer;
+        const element =
+          ancestor.nodeType === Node.TEXT_NODE ? (ancestor.parentElement as HTMLElement) : (ancestor as HTMLElement);
+
+        if (this.activeElement) {
+          this.activeElement.removeAttribute('style');
+        }
+        this.activeElement = element;
+
+        detail = {
+          canvas: targetCanvas.closest('[contenteditable]'),
+          range: range
+        };
+      }
     }
 
-    const selection = document.getSelection(); // this.getRootNode().getSelection();
-    const focusNode = selection.focusNode;
-    const range = selection.getRangeAt(0);
-
-    // check if selection is in canvas
-    if (this.canvases.some(canvas => canvas.contains(focusNode))) {
-      const xmlRange = this._logger.createRangeXML(range);
-      this._logger.xmlRange = xmlRange;
-
-      let node = range.commonAncestorContainer;
-      let element = node.nodeType === Node.TEXT_NODE ? node.parentElement : (node as HTMLElement);
-
-      this.activeElement?.removeAttribute('style');
-      this.activeElement = element;
-      // element.style.setProperty('--anchor-name', '--activeElement');
-
-      this._dispatchCanvasSelectionChange({
-        canvas: element.closest('[contenteditable]'),
-        range: {
-          startOffset: xmlRange.startOffset,
-          endOffset: xmlRange.endOffset,
-          startContainer: xmlRange.startContainer,
-          endContainer: xmlRange.endContainer
-        },
-
-        collapsed: xmlRange.collapsed,
-        element: xmlRange.commonAncestorContainer
-      });
-    } else {
-      this._dispatchCanvasSelectionChange(null);
-    }
-  }
-
-  private _dispatchCanvasSelectionChange(detail: any) {
+    // single dispatch, detail is either the populated object or null
     this.dispatchEvent(
       new CustomEvent('canvas-selectionchange', {
         detail,
@@ -238,50 +183,67 @@ export class WebCanvas extends LitElement {
       range = ranges[0];
     }
 
-    // Ensure the cursor is inside a paragraph
-    // enforceParagraphStructure(range);
+    const MineEvent = new MyInputEvent(inputType, { range, inputType, data });
+    this.dispatchEvent(MineEvent);
 
-    const xmlRange = this._logger.createRangeXML(range);
-
-    // console.info(inputType, xmlRange, data);
-    // This is where the magic happens, the hookInputEvents will call the hook implementation
-    let selectionRange = await InputEvents[inputType](this._logger.elms, xmlRange, data);
-
-    // Apply the XML changes to the HTML
-    this._logger.apply();
-
-    // if (ranges.length === 0) {
-    //   selectionRange = new StaticRange(xmlRange);
-    //   selectionRange.startContainer.normalize();
-    // }
-
-    // PK: restore the selection
-    if (selectionRange !== null) this._restoreSelection(selectionRange);
+    const a = await MineEvent.range;
+    if (a !== null) this._restoreSelection(a);
   }
 
   private _getHTMLNode(xmlNode: Element | Node): HTMLElement {
-    const xPathXML = this._logger.xpath(xmlNode).slice(1);
+    const xPathXML = xPath(xmlNode).slice(1);
     const result = document.evaluate(xPathXML, this, null, XPathResult.ANY_TYPE, null).iterateNext() as HTMLElement;
     return result;
   }
 
+  /**
+   * Core routine: given containers, offsets, and collapsed flag,
+   * build a DOM Range and apply it to our editor’s Selection.
+   */
+  private _applySelection(startNode: Node, startOffset: number, endNode: Node, endOffset: number, collapsed: boolean) {
+    const range = new Range();
+    range.setStart(startNode, Math.max(0, startOffset));
+    range.setEnd(endNode, Math.max(0, collapsed ? startOffset : endOffset));
+
+    // @ts-ignore Shadow-root selection is supported in Chrome/Edge
+    const sel = this.getRootNode().getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+
+  /**
+   * Restore from a previously-saved StaticRange (with real DOM containers).
+   */
   private _restoreSelection(r: StaticRange) {
     if (!r) return;
-    const { startContainer, startOffset, endContainer, endOffset, collapsed } = r;
-    const range = new Range();
-    const htmlNode = this._getHTMLNode(startContainer);
-    if (!htmlNode) return;
-    range.setStart(htmlNode, Math.max(0, startOffset));
-    range.setEnd(
-      this._getHTMLNode(collapsed ? startContainer : endContainer),
-      collapsed ? Math.max(0, startOffset) : Math.max(0, endOffset)
-    );
 
-    // @ts-ignore ignore the fact that this.getRootNode() is a shadowRoot, Chrome and Edge support this, Safari and Firefox don't
-    const selection = this.getRootNode().getSelection();
-    // const selection = this.closest('web-content-editor').getRootNode().getSelection();
-    selection.removeAllRanges();
-    selection.addRange(range);
+    const { startContainer, startOffset, endContainer, endOffset, collapsed } = r;
+
+    const htmlStart = this._getHTMLNode(startContainer);
+    if (!htmlStart) return;
+
+    const htmlEnd = collapsed ? htmlStart : this._getHTMLNode(endContainer);
+    if (!htmlEnd) return;
+
+    this._applySelection(htmlStart, startOffset, htmlEnd, endOffset, collapsed);
+  }
+
+  /**
+   * Restore from a “route + offsets” representation.
+   */
+  private _restoreSelectionBaseOnRoute(
+    startOffset: number,
+    collapsed: boolean,
+    endOffset: number,
+    firstRoute: number[],
+    lastRoute: number[]
+  ) {
+    if (!firstRoute?.length || !lastRoute?.length) return;
+
+    const startNode = this.getNodeByRoute(firstRoute);
+    const endNode = collapsed ? startNode : this.getNodeByRoute(lastRoute);
+
+    this._applySelection(startNode, startOffset, endNode, endOffset, collapsed);
   }
 
   private getNodeByRoute(route: number[]) {
@@ -294,31 +256,16 @@ export class WebCanvas extends LitElement {
     }
     return node;
   }
-
-  private _restoreSelectionBaseOnRoute(
-    startOffset: number,
-    collapsed: boolean,
-    endOffset: number,
-    firstRoute: number[],
-    lastRoute: number[]
-  ) {
-    if (!firstRoute?.length || !lastRoute?.length) return;
-    const startContainer = this.getNodeByRoute(firstRoute);
-    const endContainer = this.getNodeByRoute(lastRoute);
-    const range = new Range();
-    range.setStart(startContainer, Math.max(0, startOffset));
-    range.setEnd(endContainer, collapsed ? Math.max(0, startOffset) : Math.max(0, endOffset));
-
-    // @ts-ignore ignore the fact that this.getRootNode() is a shadowRoot, Chrome and Edge support this, Safari and Firefox don't
-    const selection = this.getRootNode().getSelection();
-
-    selection.removeAllRanges();
-    selection.addRange(range);
-  }
 }
 
 export class UndoEvent extends Event {
-  public range: StaticRange | null = null;
+  public range: {
+    firstRoute: number[];
+    lastRoute: number[];
+    startOffset: number;
+    endOffset: number;
+    collapsed: boolean;
+  } | null = null;
   public static eventName = 'undo';
   constructor(public canvas: HTMLElement) {
     super(UndoEvent.eventName, { bubbles: true, composed: true });
@@ -326,15 +273,33 @@ export class UndoEvent extends Event {
 }
 
 export class RedoEvent extends Event {
-  public range: StaticRange | null = null;
+  public range: {
+    firstRoute: number[];
+    lastRoute: number[];
+    startOffset: number;
+    endOffset: number;
+    collapsed: boolean;
+  } | null = null;
   public static eventName = 'redo';
   constructor(public canvas: HTMLElement) {
     super(RedoEvent.eventName, { bubbles: true, composed: true });
   }
 }
 
-export class PatchEvent extends Event {
+export class PatchedEvent extends Event {
+  public static eventName = 'patched';
   constructor() {
-    super('patch', { bubbles: true, composed: true });
+    super(PatchedEvent.eventName, { bubbles: true, composed: true });
+  }
+}
+
+export class MyInputEvent extends Event {
+  public range: StaticRange | null = null;
+  public static eventName = 'input-event';
+  constructor(
+    public inputType: string,
+    public data: { range: StaticRangeInit; inputType: string; data?: any }
+  ) {
+    super(MyInputEvent.eventName, { bubbles: true, composed: true });
   }
 }

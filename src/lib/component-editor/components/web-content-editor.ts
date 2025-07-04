@@ -4,7 +4,10 @@ import { createContext, provide } from '@lit/context';
 import { editContext, EditContext } from '../context/logger';
 import { ContentFunc, Diff, MyModuleInterface } from '../src/types';
 import { XmlSelection, xmlSelectionContext } from '../context/selection';
-import { RedoEvent, UndoEvent, WebCanvas } from './web-canvas/web-canvas';
+import { MyInputEvent, RedoEvent, UndoEvent, WebCanvas } from './web-canvas/web-canvas';
+
+import * as InputEvents from './web-canvas/input-events';
+
 import { DiffDOM } from 'diff-dom';
 
 import { html, signal } from '@lit-labs/signals';
@@ -89,26 +92,23 @@ export class WebContentEditor extends LitElement {
     preDiffApply: info => info.diff.action === 'removeAttribute' && true
   });
 
-  connectedCallback(): void {
-    super.connectedCallback();
-    // document.addEventListener('selectionchange', this._selectionChangedHandler.bind(this));
-  }
-
-  // ------------------ PUBLIC ------------------
-
   constructor() {
     super();
     this.loadCustomElements();
-    this.addEventListener('canvas-selectionchange', this.onCanvasSelectionChange);
+    this.addEventListener('canvas-selectionchange', this.onCanvasSelectionChange.bind(this));
+    this.addEventListener(MyInputEvent.eventName, this.InputEventHandler.bind(this));
+    this.addEventListener(UndoEvent.eventName, this.undo.bind(this));
+    this.addEventListener(RedoEvent.eventName, this.redo.bind(this));
+  }
 
-    // this.addEventListener(UndoEvent.eventName, (event: UndoEvent) => {
-    //   const range = this.undo(event.canvas);
-    //   event.range = range;
-    // });
-    // this.addEventListener(RedoEvent.eventName, (event: UndoEvent) => {
-    //   const range = this.undo(event.canvas);
-    //   event.range = range;
-    // });
+  public async InputEventHandler(event: MyInputEvent): Promise<void> {
+    const xmlRange = this.createRangeXML(event.data.range);
+
+    let selectionRange = InputEvents[event.data.inputType](this.logger.elms, xmlRange, event.data.data);
+
+    event.range = selectionRange;
+
+    this.apply();
   }
 
   private _observerMutations: any[];
@@ -134,7 +134,6 @@ export class WebContentEditor extends LitElement {
     this.apply(false);
 
     // this.dispatchEvent(new CanvasesEvent(this.xmlCanvasElements));
-    console.log(this.xmlCanvasElements);
     this.signalCanvases = this.xmlCanvasElements;
 
     this._observeXMLMutations();
@@ -216,14 +215,14 @@ export class WebContentEditor extends LitElement {
     return result;
   }
 
-  public undo(_: Element) {
+  public undo(event: UndoEvent) {
     if (this._diffs.length === 0) return null;
     const df = this._diffs.pop()!;
     this._redoDiffs.push(df);
     this._diffDOM.undo(this.xmlDocument.documentElement, df.diffs);
 
     this.apply(false);
-    return {
+    event.range = {
       firstRoute: df.diffs.length > 0 ? df.diffs[0].route : [],
       lastRoute: df.diffs.length > 0 ? df.diffs[df.diffs.length - 1].route : [],
       collapsed: df.collapsed,
@@ -232,13 +231,13 @@ export class WebContentEditor extends LitElement {
     };
   }
 
-  public redo(_: Element) {
+  public redo(event: UndoEvent) {
     if (this._redoDiffs.length === 0) return null;
     const df = this._redoDiffs.pop()!;
     this._diffs.push(df);
     this._diffDOM.undo(this.xmlDocument.documentElement, df.diffs);
     this.apply(false);
-    return {
+    event.range = {
       firstRoute: df.diffs.length > 0 ? df.diffs[0].route : [],
       lastRoute: df.diffs.length > 0 ? df.diffs[df.diffs.length - 1].route : [],
       startOffset: df.startOffset,
@@ -323,17 +322,6 @@ export class WebContentEditor extends LitElement {
    * Creates a logger with a variety of utility functions for managing elements, ranges, and content in XML.
    */
   private createEditContext(): EditContext {
-    // const xmlStore = new XMLStore();
-    // xmlStore.addEventListener(PatchEvent.eventName, (event: PatchEvent) => {
-    //   signalPatch.set(event.diffs);
-    // });
-    // xmlStore.addEventListener(XmlUpdateEvent.eventName, (event: XmlUpdateEvent) => {
-    //   this.dispatchEvent(new CustomEvent('xml-store-xml', { detail: event.xml, bubbles: true, composed: true }));
-    // });
-    // xmlStore.addEventListener(CanvasesEvent.eventName, (event: CanvasesEvent) => {
-    //   signalCanvases.set(event.canvases);
-    // });
-
     return {
       elms: new Map<string, MyModuleInterface>(),
       // web-canvas functions
@@ -387,7 +375,23 @@ export class WebContentEditor extends LitElement {
    * @param event - The custom event containing the new selection data.
    */
   private onCanvasSelectionChange(event: CustomEvent<XmlSelection>) {
-    this.selection = event.detail;
+    const xmlRange = this.createRangeXML(event.detail.range);
+    this.logger.xmlRange = xmlRange;
+
+    const adetail = {
+      type: event.detail.type,
+      canvas: event.detail.canvas,
+      range: {
+        startOffset: xmlRange.startOffset,
+        endOffset: xmlRange.endOffset,
+        startContainer: xmlRange.startContainer,
+        endContainer: xmlRange.endContainer,
+        collapsed: xmlRange.collapsed,
+      },
+      element: xmlRange.commonAncestorContainer
+    };
+
+    this.selection = adetail;
   }
 
   /**

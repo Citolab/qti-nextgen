@@ -1,7 +1,7 @@
 import { LitElement, html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
-import { Diff, patchContext } from '../../../component-editor';
+import { Diff, patchContext, PatchedEvent } from '../../../component-editor';
 import { InfoCanvas } from '../info-canvas';
 import { ContextConsumer } from '@lit/context';
 
@@ -26,20 +26,23 @@ export class ErrorCanvasElement extends LitElement {
   constructor() {
     super();
     this.infoCanvas = this.closest('web-content-editor').querySelector('web-canvas') as InfoCanvas;
+    this.infoCanvas.addEventListener(PatchedEvent.eventName, () => {
+      this.check()
+    })
   }
 
-  private patchConsumer = new ContextConsumer(this, {
-    context: patchContext,
-    subscribe: true,
-    callback: this._onPatchContextChanged.bind(this)
-  });
+  // private patchConsumer = new ContextConsumer(this, {
+  //   context: patchContext,
+  //   subscribe: true,
+  //   callback: this._onPatchContextChanged.bind(this)
+  // });
 
-  private _onPatchContextChanged(value: Diff[]) {
-    if (!value || value.length === 0) {
-      return;
-    }
-    this.patch(value);
-  }
+  // private _onPatchContextChanged(value: Diff[]) {
+  //   if (!value || value.length === 0) {
+  //     return;
+  //   }
+  //   this.patch(value);
+  // }
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -64,7 +67,7 @@ export class ErrorCanvasElement extends LitElement {
     });
   }
 
-  public patch(diffs: Diff[]) {
+  public check() {
     // First we create a tree walker that will walk through all text nodes in the canvas
     const treewalkers: TreeWalker[] = this.infoCanvas.canvases.map((canvas: HTMLCanvasElement) =>
       document.createTreeWalker(canvas, NodeFilter.SHOW_TEXT, {
@@ -126,9 +129,6 @@ export class ErrorCanvasElement extends LitElement {
 const rangePositionRelativeToCanvas = (range: Range, canvas: HTMLElement) => {
   const bcRange = range.getBoundingClientRect();
   const bcDiv = canvas.getBoundingClientRect();
-
-  console.log('bcRange', bcRange);
-  console.log('bcDiv', bcDiv);
 
   const position = {
     left: `${bcRange.left - bcDiv.left}px`,

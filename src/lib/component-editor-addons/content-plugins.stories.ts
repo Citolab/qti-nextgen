@@ -59,7 +59,7 @@ export const Addons: Story = {
         ></empty-canvas>
 
         <info-canvas
-          class="pointer-events-none fixed right-4 bottom-4 z-[2000] origin-bottom-right scale-[0.3] bg-white shadow-lg"
+          class="pointer-events-none fixed right-4 bottom-4 z-[2000] p-8 origin-bottom-right scale-[0.3] bg-white shadow-lg"
         ></info-canvas>
 
         <download-doc class="part-[btn]:p-2 mt-2 cursor-pointer text-sm text-gray-400"></download-doc>

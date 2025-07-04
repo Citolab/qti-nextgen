@@ -1,4 +1,10 @@
 import type { MyModuleInterface } from '../../component-editor';
+import {
+  deleteContentsLikeWord,
+  insertParagraphForElementNode,
+  insertParagraphForTextNode,
+  insertTextInElementNode
+} from '../components/utilities';
 
 const MODULE: MyModuleInterface = {
   identifier: 'li',
@@ -22,7 +28,25 @@ const MODULE: MyModuleInterface = {
       // el.appendChild(el.ownerDocument.createElement('br'));
     }
     return null;
+  },
+  insertText: (range: Range, data): StaticRange => {
+    return insertTextInElementNode(range.startContainer as HTMLElement, data);
+  },
+  insertParagraph: (range): StaticRange => {
+    // Delete contents if range isn't collapsed
+    if (!range.collapsed) {
+      return deleteContentsLikeWord(range);
+    }
+
+    const { startContainer: sc, startOffset: so } = range;
+
+    // Handle different node types with ternary/short-circuit operator
+    return sc.nodeType === Node.TEXT_NODE
+      ? insertParagraphForTextNode(range, sc as Text, so)
+      : sc.nodeType === Node.ELEMENT_NODE
+        ? insertParagraphForElementNode(range, sc as HTMLElement, 'p')
+        : (console.error('Unsupported node type:', sc?.nodeType), null);
   }
 };
 
-export const { identifier, style, mutateRemoved, mutateAdded, mutateEmpty } = MODULE;
+export const { identifier, style, mutateRemoved, mutateAdded, mutateEmpty, insertParagraph, insertText } = MODULE;

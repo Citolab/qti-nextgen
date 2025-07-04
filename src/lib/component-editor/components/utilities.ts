@@ -9,12 +9,22 @@ export function getUpperParent(range: Range): Element | null {
   const { startContainer: sc } = staticRange;
   const scElm = sc.nodeType === Node.TEXT_NODE ? sc.parentElement : (sc as Element);
 
-  let parent = scElm as Element;
-  // check if parent.parentElement has contenteditable as attribute
-  while (!parent.parentElement.hasAttribute('contenteditable')) {
+  let parent = scElm as Element | null;
+
+  while (
+    parent &&
+    parent.parentElement &&
+    !parent.parentElement.hasAttribute('contenteditable')
+  ) {
     parent = parent.parentElement;
   }
-  return parent;
+
+  // Ensure we only return a valid element with contenteditable parent
+  if (parent && parent.parentElement && parent.parentElement.hasAttribute('contenteditable')) {
+    return parent;
+  }
+
+  return null;
 }
 
 export function findElement(range: Range, elName: string, canvas?: Element): Element | null {
@@ -28,9 +38,12 @@ export function findElement(range: Range, elName: string, canvas?: Element): Ele
   const { startContainer: sc } = staticRange;
   let scElm = sc.nodeType === Node.TEXT_NODE ? sc.parentElement : (sc as Element);
 
-  while (!scElm.parentElement.hasAttribute('contenteditable')) {
-    if (scElm.nodeName === elName) {
+  while (scElm && scElm.parentElement) {
+    if (scElm.nodeName.toLowerCase() === elName.toLowerCase()) {
       return scElm;
+    }
+    if (scElm.parentElement.hasAttribute('contenteditable')) {
+      break;
     }
     scElm = scElm.parentElement;
   }

@@ -12,6 +12,11 @@ export const insertParagraph: IInputEvent<string> = async (elMap, range, data): 
 
   const elementModule = elMap.get(commonElement.nodeName.toLowerCase());
 
+  if (!elementModule || !elementModule.insertParagraph) {
+    console.error(`No insertParagraph hook found for element: ${commonElement.nodeName}`);
+    throw new Error(`No insertParagraph hook found for element: ${commonElement.nodeName}`);
+  }
+
   if (elementModule?.insertParagraph) return elementModule.insertParagraph(range, data);
 
   throw new Error(`No insertParagraph hook found for element: ${commonElement.nodeName}`);

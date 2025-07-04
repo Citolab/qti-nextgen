@@ -31,6 +31,8 @@ export class MenuAuthoring extends LitElement {
       const selection = (this.closest('web-content-editor').getRootNode() as Document).getSelection();
       const range = typeof selection?.rangeCount === 'number' && selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
 
+
+      console.log(range)
       // buggy behavior in br, explicitely select parent
       if (range && range.startContainer.nodeName === 'BR') {
         const parentElement = range.startContainer.parentElement;
@@ -54,9 +56,10 @@ export class MenuAuthoring extends LitElement {
           getBoundingClientRect: () => range.getBoundingClientRect()
         };
 
+        console.log('virtualEl', virtualEl);
         computePosition(virtualEl, addComponentPanel, {
           placement: 'top',
-          middleware: [offset(10), autoPlacement()]
+          middleware: [offset(10)]
         }).then(({ x, y }) => {
           Object.assign(addComponentPanel.style, {
             left: `${x}px`,
