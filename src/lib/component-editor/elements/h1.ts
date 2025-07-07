@@ -48,7 +48,6 @@ const MODULE: MyModuleInterface = {
     }
 
     const { startContainer: sc, startOffset: so } = range;
-
     // Handle different node types with ternary/short-circuit operator
     return sc.nodeType === Node.TEXT_NODE
       ? insertParagraphForTextNode(range, sc as Text, so)

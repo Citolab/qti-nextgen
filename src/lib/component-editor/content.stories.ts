@@ -28,9 +28,9 @@ export const Core: Story = {
     // called whenever the web-content-editor is initialized
     function initialize(el: WebContentEditor) {
       if (!el) { return }
-      const xml = `<p></p>`;
+      const xml = `<h1></h1>`;
       el.initialize(xml, {
-        'supported-elements': 'p this-is-the-root-tag',
+        'supported-elements': 'p h1 this-is-the-root-tag',
         'canvas-selector': 'this-is-the-root-tag'
       });
       el.addEventListener('xml-store-xml', (e: XmlUpdateEvent) => {
@@ -40,7 +40,7 @@ export const Core: Story = {
 
     return html`
       <web-content-editor class="container mx-auto mt-12 block" ref>
-        <web-canvas class="block aspect-video bg-white p-8 text-gray-800"></web-canvas>
+        <web-canvas class="block prose aspect-video bg-white p-8"></web-canvas>
 
         <selection-logger></selection-logger>
       </web-content-editor>
@@ -64,9 +64,9 @@ export const DefaultPlay: Story = {
     await new Promise(resolve => setTimeout(resolve, 100));
     thisIsTheRootTag.focus();
     await user.keyboard('hallo');
-    expect(thisIsTheRootTag.innerHTML).toMatch('<p>hallo</p>');
+    expect(thisIsTheRootTag.innerHTML).toMatch('<h1>hallo</h1>');
     await user.keyboard('{enter}');
-    expect(thisIsTheRootTag.innerHTML).toMatch('<p>hallo</p><p></p>');
+    expect(thisIsTheRootTag.innerHTML).toMatch('<h1>hallo</h1><p></p>');
     await user.keyboard('{backspace}');
     expect(thisIsTheRootTag.innerHTML).toMatch('<p>hallo</p>');
     await user.keyboard('doei');
