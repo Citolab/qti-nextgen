@@ -59,7 +59,7 @@ export const Addons: Story = {
         ></empty-canvas>
 
         <info-canvas
-          class="pointer-events-none fixed right-4 bottom-4 z-[2000] p-8 origin-bottom-right scale-[0.3] bg-white shadow-lg"
+          class="pointer-events-none fixed right-4 bottom-4 z-[2000] origin-bottom-right scale-[0.3] bg-white p-8 shadow-lg"
         ></info-canvas>
 
         <download-doc class="part-[btn]:p-2 mt-2 cursor-pointer text-sm text-gray-400"></download-doc>
@@ -82,14 +82,18 @@ export const Addons: Story = {
             normaal
           </naar-paragraaf>
         </element-modifier>
-        <text-selection class="z-[1000] flex gap-2 rounded bg-white  border-slate-200 shadow-lg">
-          <wrap-strong class="part-[btn]:cursor-pointer part-[btn]:p-2 inline-block text-sm p-4 hover:bg-gray-100">
+        <text-selection class="z-[1000] flex gap-2 rounded border-slate-200 bg-white shadow-lg">
+          <wrap-strong class="part-[btn]:cursor-pointer part-[btn]:p-2 inline-block p-4 text-sm hover:bg-gray-100">
             vet
           </wrap-strong>
         </text-selection>
 
         <!-- <div class="relative h-auto rounded border-solid border-slate-200 bg-white p-12"> -->
-          <web-canvas class="relative bg-white h-auto splitline text-gray-800" ${ref(webCanvas)} style="anchor-name: --target"></web-canvas>
+        <web-canvas
+          class="splitline relative h-auto bg-white text-gray-800"
+          ${ref(webCanvas)}
+          style="anchor-name: --target"
+        ></web-canvas>
         <!-- </div> -->
       </web-content-editor>
     `;

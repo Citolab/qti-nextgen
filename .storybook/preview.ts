@@ -16,7 +16,7 @@ export const decorators = [
 const preview: Preview = {
   globalTypes: {
     pseudo: {}
-  }
+  },
   // decorators: [(Story, context) => withConsole()(Story)(context)]
 };
 

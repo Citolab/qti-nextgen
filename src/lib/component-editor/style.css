@@ -21,3 +21,5 @@ web-canvas {
   content: '\0a';
   white-space: pre-wrap;
 }
+
+.selected { outline: 2px solid #007bff; background: rgba(0,123,255,0.2); }

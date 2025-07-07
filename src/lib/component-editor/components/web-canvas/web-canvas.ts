@@ -6,6 +6,7 @@ import { Diff } from '../../src/types';
 import { xmlRootNodeName } from '../../elements/this-is-the-root-tag';
 import { canvasesContext, patchContext } from '../web-content-editor';
 import { xPath } from '../xml-store/libs/xpath/Xpath';
+import { enableDragSelect } from './drag-select';
 
 @customElement('web-canvas')
 export class WebCanvas extends LitElement {
@@ -52,6 +53,8 @@ export class WebCanvas extends LitElement {
   // ------------------ PRIVATE ------------------
 
   public initializeCanvases(canvasesXML: Element[]) {
+
+
     this.canvases = canvasesXML.map((canvas: Element) => this._getHTMLNode(canvas));
     this.canvases.forEach((canvas: HTMLElement) => {
       canvas.setAttribute('part', 'canvas');
@@ -68,6 +71,9 @@ export class WebCanvas extends LitElement {
       // canvas.style.cssText = 'display:block;border:1px solid #000000;padding:2px;width:auto;height:100%';
     });
 
+
+
+    enableDragSelect(this.canvases);
     document.addEventListener('selectionchange', this._selectionChangedHandler.bind(this));
     this.rootCanvas.addEventListener('beforeinput', this._beforeInputHandler.bind(this));
     this.rootCanvas.addEventListener('keydown', this._keydownHandler.bind(this));
@@ -286,13 +292,6 @@ export class RedoEvent extends Event {
   }
 }
 
-export class PatchedEvent extends Event {
-  public static eventName = 'patched';
-  constructor() {
-    super(PatchedEvent.eventName, { bubbles: true, composed: true });
-  }
-}
-
 export class MyInputEvent extends Event {
   public range: StaticRange | null = null;
   public static eventName = 'input-event';
@@ -303,3 +302,13 @@ export class MyInputEvent extends Event {
     super(MyInputEvent.eventName, { bubbles: true, composed: true });
   }
 }
+
+export class PatchedEvent extends Event {
+  public static eventName = 'patched';
+  constructor() {
+    super(PatchedEvent.eventName, { bubbles: true, composed: true });
+  }
+}
+
+
+

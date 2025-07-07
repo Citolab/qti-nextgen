@@ -16,7 +16,7 @@ const meta: Meta = {
   parameters: {
     layout: 'fullscreen',
     backgrounds: { default: 'light' }
-  }
+  },
 };
 export default meta;
 type Story = StoryObj;
@@ -35,19 +35,20 @@ export const Core: Story = {
         ${ref(webContentEditor)}
         @xml-store-xml=${e => (xmlString.value.textContent = e.xml.xml)}
         supported-elements="p this-is-the-root-tag"
-        class="grid grid-cols-2"
+        class="container mx-auto mt-12 block"
+        xml="<p></p>"
       >
-        <web-canvas
-          class="col-span-2 border-gray-300 bg-white p-4 shadow outline-offset-2 outline-green-400 focus-within:outline-2"
+        <web-canvas style="background-color: white!"
+          class="block bg-white aspect-video text-gray-800 p-8"
         ></web-canvas>
         
-          <pre class="block overflow-x-auto border p-4 text-xs text-gray-600" ${ref(xmlString)}></pre>
         
-          <selection-logger></selection-logger>
+        <selection-logger></selection-logger>
         
       </web-content-editor>
 
-      <button @click=${() => loadXML()}>load XML</button>
+      <pre class="block overflow-x-auto border p-4 text-xs text-gray-600" ${ref(xmlString)}></pre>
+
     `;
   },
   args: {
