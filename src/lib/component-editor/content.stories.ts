@@ -43,12 +43,13 @@ export const Core: Story = {
         ></web-canvas>
         
         
-        <selection-logger></selection-logger>
+          <selection-logger></selection-logger>
         
       </web-content-editor>
 
-      <pre class="block overflow-x-auto border p-4 text-xs text-gray-600" ${ref(xmlString)}></pre>
+                <pre class="block overflow-x-auto border p-4 text-xs text-gray-600" ${ref(xmlString)}></pre>
 
+      <button @click=${() => loadXML()}>load XML</button>
     `;
   },
   args: {
