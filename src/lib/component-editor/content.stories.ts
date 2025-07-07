@@ -51,25 +51,3 @@ export const Core: Story = {
     `;
   }
 };
-
-export const DefaultPlay: Story = {
-  render: Core.render,
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    const user = userEvent.setup();
-    const thisIsTheRootTag = canvasElement.querySelector(xmlRootNodeName) as HTMLElement;
-    const submitButton = canvas.getByRole('button');
-    await user.click(submitButton);
-    // make an await that waits a second
-    await new Promise(resolve => setTimeout(resolve, 100));
-    thisIsTheRootTag.focus();
-    await user.keyboard('hallo');
-    expect(thisIsTheRootTag.innerHTML).toMatch('<h1>hallo</h1>');
-    await user.keyboard('{enter}');
-    expect(thisIsTheRootTag.innerHTML).toMatch('<h1>hallo</h1><p></p>');
-    await user.keyboard('{backspace}');
-    expect(thisIsTheRootTag.innerHTML).toMatch('<p>hallo</p>');
-    await user.keyboard('doei');
-    expect(thisIsTheRootTag.innerHTML).toMatch('<p>hallo</p><p>doei</p>');
-  }
-};

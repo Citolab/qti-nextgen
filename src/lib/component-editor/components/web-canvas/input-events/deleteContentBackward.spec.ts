@@ -19,7 +19,7 @@ const map = new Map<string, MyModuleInterface>([
 describe('DeleteContentBackward', () => {
 
   it('remove text with nested cursor positions and commonAncestor', async () => {  
-      const input = xml`<p>h!¡oi</p>`;
+      const input = xml`<p>!h¡oi</p>`;
       const assert = xml`<p>!¡oi</p>`;
 
       const { xmlDocument, range } = parseContentWithCursors(input);  

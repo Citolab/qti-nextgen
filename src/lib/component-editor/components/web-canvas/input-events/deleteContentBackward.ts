@@ -27,7 +27,7 @@ export const deleteContentBackward: IInputEvent<string> = async (elMap, range, d
   switch (kind) {
     case 'insideText': // 2a
       // delete one character/grapheme in a text node
-      console.log('Handling 2a: delete within text');
+      // console.log('Handling 2a: delete within text');
 
       range.deleteContents(); // this will delete the text in the range
       return range;
@@ -57,7 +57,7 @@ export const deleteContentBackward: IInputEvent<string> = async (elMap, range, d
 
     case 'atomic': // 2c
       // remove the single atomic element (img, hr, etc)
-      console.log('Handling 2c: delete atomic element');
+      // console.log('Handling 2c: delete atomic element');
       break;
 
     default:

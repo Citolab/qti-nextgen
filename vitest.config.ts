@@ -29,7 +29,7 @@ export default defineConfig({
     // inspectBrk: true,
     // fileParallelism: false, 
     projects: [
-      {
+   {
         plugins: [
           storybookTest({
             tags: {
@@ -47,15 +47,15 @@ export default defineConfig({
           name: 'stories',
           setupFiles: ['./.storybook/vitest.setup.ts'],
           globals: true,
+          includeTaskLocation: true,
           browser: {
             enabled: true,
             provider: 'playwright',
             headless: true,
-            viewport: { width: 1280, height: 600 },
             instances: [
               {
-                browser: 'chromium'
-
+                browser: 'chromium',
+                headless: true, // Both modes work fine
                 // provide: {
                 //   launch: {
                 //     args: ['--remote-debugging-port=9222']
@@ -73,15 +73,17 @@ export default defineConfig({
           setupFiles: ['./test/setup/index.js'],
           include: ['src/**/*.spec.ts', 'src/**/*.test.ts'],
           globals: true,
-
+          includeTaskLocation: true,
           browser: {
             enabled: true,
             provider: 'playwright',
             headless: true, // Both modes work fine
-            instances: [{ browser: 'chromium', headless: true }]
+            viewport: { width: 320, height: 568 },
+            instances: [{ browser: 'chromium' }]
           }
         }
       }
     ]
   }
 });
+
