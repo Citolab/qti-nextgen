@@ -15,7 +15,6 @@ import './components/ai';
 import './components/panels/panel-handler';
 
 import type { WebCanvas, WebContentEditor, XmlUpdateEvent } from '@editor/content';
-import type { InfoCanvas } from '@editor/content-addons';
 
 export default {
   title: 'NextGen',
@@ -30,7 +29,6 @@ export const NextGen = {
   render: () => {
     const webContentEditor = createRef<WebContentEditor>();
     const webCanvas = createRef<WebCanvas>();
-    const infoCanvas = createRef<InfoCanvas>();
     const xmlString = createRef<HTMLPreElement>();
 
         function initialize(el: WebContentEditor) {
@@ -39,8 +37,8 @@ export const NextGen = {
       }
       const xml = `<p></p>`;
       el.initialize(example, {
-        'supported-elements': 'p this-is-the-root-tag',
-        'canvas-selector': 'this-is-the-root-tag'
+        'supported-elements': 'p this-is-the-root-tag qti-simple-choice ul li qti-choice-interaction',
+        'canvas-selector': '[class*="qti-layout-col"]'
       });
       el.addEventListener('xml-store-xml', (e: XmlUpdateEvent) => {
         xmlString.value.innerText = e.xml.xml;
@@ -49,9 +47,8 @@ export const NextGen = {
     
     return html`
       <web-content-editor
-        canvas-selector=${`[class*="qti-layout-col"]`}
         ${ref(webContentEditor)}
-        supported-elements="p h1 strong em ul li qti-assessment-item qti-item-body div qti-choice-interaction qti-simple-choice"
+
         class="container mx-auto mt-12 block"
       >
         <error-canvas

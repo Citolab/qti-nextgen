@@ -1,6 +1,5 @@
 import { MyModuleInterface } from '@editor/content';
 import {
-  createBrTagIfNecessary,
   deleteContentsLikeWord,
   insertParagraphForElementNode,
   insertParagraphForTextNode
@@ -29,31 +28,20 @@ const MODULE: MyModuleInterface = {
     return null;
   },
   insertParagraph: (range): StaticRange => {
-    let cp: StaticRange;
+    // Delete contents if range isn't collapsed
     if (!range.collapsed) {
-      deleteContentsLikeWord(range);
+      return deleteContentsLikeWord(range);
     }
 
-    if (range.collapsed) {
-      const { startContainer: sc, startOffset: so } = range;
+    const { startContainer: sc, startOffset: so } = range;
 
-      switch (sc?.nodeType) {
-        case Node.TEXT_NODE:
-          cp = insertParagraphForTextNode(range, sc as Text, so);
-          break;
-
-        case Node.ELEMENT_NODE:
-          cp = insertParagraphForElementNode(range, sc as HTMLElement);
-          break;
-
-        default:
-          console.error('Unsupported node type:', sc?.nodeType);
-          break;
-      }
-    }
-    createBrTagIfNecessary(cp);
-    return cp;
+    // Handle different node types with ternary/short-circuit operator
+    return sc.nodeType === Node.TEXT_NODE
+      ? insertParagraphForTextNode(range, sc as Text, so)
+      : sc.nodeType === Node.ELEMENT_NODE
+        ? insertParagraphForElementNode(range, sc as HTMLElement, 'p')
+        : (console.error('Unsupported node type:', sc?.nodeType), null);
   }
 };
 
-export const { identifier, style } = MODULE;
+export const { identifier, style, insertParagraph } = MODULE;
