@@ -81,22 +81,8 @@ export function replaceElement(rangeXML: Range, source: Element, newType: string
 }
 
 export function deleteContentsLikeWord(range: Range): StaticRange | null {
-  // Save the position information before deletion
-  // const { startContainer, startOffset } = range;
-
-  // Delete the selected content
   range.deleteContents();
-
-  const inElement = range.startContainer.parentElement;
-  if (inElement.tagName == 'strong') {
-    if (inElement.childNodes.length === 1 && inElement.childNodes[0].nodeName === '#text' && inElement.childNodes[0].textContent === '') {
-      inElement.remove();
-    }
-  }
-
   return range;
-
-
 }
 
 export const clearBrTagIfNecessary = (element: HTMLElement) => {

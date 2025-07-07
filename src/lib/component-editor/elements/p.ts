@@ -56,7 +56,6 @@ const MODULE: MyModuleInterface = {
   deleteContentBackward: (range): StaticRange => {
     let cp: StaticRange;
     cp = deleteContentsLikeWord(range);
-    // createBrTagIfNecessary(cp);
     return cp;
   },
   insertParagraph: (range): StaticRange => {

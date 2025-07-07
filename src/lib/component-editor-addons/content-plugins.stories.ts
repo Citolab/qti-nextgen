@@ -6,7 +6,7 @@ import './index';
 import './style.css';
 
 import { WebCanvas } from '../component-editor/components/web-canvas/web-canvas';
-import { WebContentEditor } from '../component-editor/components/web-content-editor';
+import { WebContentEditor, XmlUpdateEvent } from '../component-editor/components/web-content-editor';
 import { Meta, StoryObj } from '@storybook/web-components-vite';
 
 const meta = {
@@ -24,6 +24,21 @@ export const Addons: Story = {
   render: () => {
     const webContentEditor = createRef<WebContentEditor>();
     const webCanvas = createRef<WebCanvas>();
+    const xmlString = createRef<HTMLPreElement>();
+
+    function initialize(el: WebContentEditor) {
+      if (!el) {
+        return;
+      }
+      const xml = `<p></p>`;
+      el.initialize(example, {
+        'supported-elements': 'p this-is-the-root-tag',
+        'canvas-selector': 'this-is-the-root-tag'
+      });
+      el.addEventListener('xml-store-xml', (e: XmlUpdateEvent) => {
+        xmlString.value.innerText = e.xml.xml;
+      });
+    }
 
     return html`
       <web-content-editor
@@ -90,12 +105,16 @@ export const Addons: Story = {
 
         <!-- <div class="relative h-auto rounded border-solid border-slate-200 bg-white p-12"> -->
         <web-canvas
-          class="splitline relative h-auto bg-white text-gray-800"
+          class="block splitline relative h-auto bg-white text-gray-800"
           ${ref(webCanvas)}
           style="anchor-name: --target"
         ></web-canvas>
         <!-- </div> -->
       </web-content-editor>
+
+      <pre class="block overflow-x-auto border p-4 text-xs text-gray-600" ${ref(xmlString)}></pre>
+
+      <button @click=${() => initialize(document.querySelector('web-content-editor'))}>load XML</button>
     `;
   }
 };

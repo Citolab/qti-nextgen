@@ -190,6 +190,7 @@ export class WebCanvas extends LitElement {
     }
 
     const MineEvent = new MyInputEvent(inputType, { range, inputType, data });
+
     this.dispatchEvent(MineEvent);
 
     const a = await MineEvent.range;

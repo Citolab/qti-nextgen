@@ -1,4 +1,4 @@
-import { LitElement, nothing, PropertyValues } from 'lit';
+import { html, LitElement, nothing, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { createContext, provide } from '@lit/context';
 import { editContext, EditContext } from '../context/logger';
@@ -10,7 +10,6 @@ import * as InputEvents from './web-canvas/input-events';
 
 import { DiffDOM } from 'diff-dom';
 
-import { html, signal } from '@lit-labs/signals';
 import { xmlRootNodeName } from '../elements/this-is-the-root-tag';
 import {
   populateCanvases as normalizeCanvasElements,
@@ -28,6 +27,7 @@ export const canvasesContext = createContext<{}>('signalCanvases');
 export const selectionContext = createContext<{}>('signalSelection');
 @customElement('web-content-editor')
 export class WebContentEditor extends LitElement {
+
   // Providing contexts for logger and selection
 
   private _patchAgainstXMLDocument: XMLDocument;
@@ -70,35 +70,22 @@ export class WebContentEditor extends LitElement {
     element: null
   };
 
-  @property({ type: String, reflect: true })
-  public xml: string = null;
-
-  protected update(changedProperties: PropertyValues): void {
-    super.update(changedProperties);
-    // If xml changes, we need to update the XMLStore
-    if (changedProperties.has('xml')) {
-      //   this.logger.xmlStore.initializeXML(this.xml);
-      this.initializeXML(this.xml);
-    }
-
-    // If canvasSelector changes, we need to update the XMLStore's canvasSelector
-    // if (changedProperties.has('canvasSelector')) {
-    //   this.logger.xmlStore.canvasSelector = this.canvasSelector;
-    // }
-    this.canvasSelector = this.canvasSelector || xmlRootNodeName; // Ensure canvasSelector is set
-  }
-
   private diffDOM = new DiffDOM({
     preDiffApply: info => info.diff.action === 'removeAttribute' && true
   });
 
   constructor() {
     super();
-    this.loadCustomElements();
     this.addEventListener('canvas-selectionchange', this.onCanvasSelectionChange.bind(this));
     this.addEventListener(MyInputEvent.eventName, this.InputEventHandler.bind(this));
     this.addEventListener(UndoEvent.eventName, this.undo.bind(this));
     this.addEventListener(RedoEvent.eventName, this.redo.bind(this));
+  }
+
+  initialize(xml: string, arg1: { 'supported-elements': string; 'canvas-selector': string; }) {
+    this.canvasSelector = arg1['canvas-selector'] || xmlRootNodeName;
+    this.loadCustomElements(arg1['supported-elements']?.split(' ') || [])
+   this.initializeXML(xml);
   }
 
   public async InputEventHandler(event: MyInputEvent): Promise<void> {
@@ -255,7 +242,6 @@ export class WebContentEditor extends LitElement {
 
     const scXML = this.findXMLNode(startContainer);
     const ecXML = this.findXMLNode(endContainer);
-
     const rangeXML = this.xmlDocument.createRange();
     rangeXML.setStart(scXML, startOffset);
     rangeXML.setEnd(ecXML, endOffset);
@@ -354,8 +340,8 @@ export class WebContentEditor extends LitElement {
    * Loads custom elements dynamically based on the `supported-elements` attribute.
    * Imported modules are added to the `elms` map in `logger`, and styles are applied if provided.
    */
-  private async loadCustomElements() {
-    const elementNames = this.getAttribute('supported-elements')?.split(' ') || [];
+  private async loadCustomElements(supportedElements: string[] = []): Promise<void> {
+    const elementNames = supportedElements;
     const elementPromises = elementNames.map(el => import(`../elements/${el}.ts`).catch(e => e));
 
     const loadedModules = await Promise.all(elementPromises);
@@ -375,6 +361,7 @@ export class WebContentEditor extends LitElement {
    * @param event - The custom event containing the new selection data.
    */
   private onCanvasSelectionChange(event: CustomEvent<XmlSelection>) {
+    if (event.detail == null) return;
     const xmlRange = this.createRangeXML(event.detail.range);
     this.logger.xmlRange = xmlRange;
 

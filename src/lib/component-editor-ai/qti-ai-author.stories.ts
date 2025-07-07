@@ -14,7 +14,7 @@ import './actions/meerKeuze';
 import './components/ai';
 import './components/panels/panel-handler';
 
-import type { WebCanvas, WebContentEditor } from '@editor/content';
+import type { WebCanvas, WebContentEditor, XmlUpdateEvent } from '@editor/content';
 import type { InfoCanvas } from '@editor/content-addons';
 
 export default {
@@ -33,18 +33,24 @@ export const NextGen = {
     const infoCanvas = createRef<InfoCanvas>();
     const xmlString = createRef<HTMLPreElement>();
 
+        function initialize(el: WebContentEditor) {
+      if (!el) {
+        return;
+      }
+      const xml = `<p></p>`;
+      el.initialize(example, {
+        'supported-elements': 'p this-is-the-root-tag',
+        'canvas-selector': 'this-is-the-root-tag'
+      });
+      el.addEventListener('xml-store-xml', (e: XmlUpdateEvent) => {
+        xmlString.value.innerText = e.xml.xml;
+      });
+    }
+    
     return html`
       <web-content-editor
         canvas-selector=${`[class*="qti-layout-col"]`}
-        .xml=${example}
         ${ref(webContentEditor)}
-        @xml-store-xml=${e =>
-          (xmlString.value.textContent = xmlFormat(e.xml.xml, {
-            indentation: '  ',
-            filter: node => node.type !== 'Comment',
-            collapseContent: true,
-            lineSeparator: '\n'
-          }))}
         supported-elements="p h1 strong em ul li qti-assessment-item qti-item-body div qti-choice-interaction qti-simple-choice"
         class="container mx-auto mt-12 block"
       >
@@ -107,6 +113,9 @@ export const NextGen = {
         <selection-logger></selection-logger>
       </web-content-editor>
       <pre class="block overflow-x-auto border p-4 text-xs text-gray-600 mx-4" ${ref(xmlString)}></pre>
+
+
+      <button @click=${() => initialize(document.querySelector('web-content-editor'))}>load XML</button>
     `;
   }
 };
