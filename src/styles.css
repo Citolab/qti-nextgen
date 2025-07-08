@@ -1,6 +1,7 @@
 @import 'modern-normalize/modern-normalize.css' layer(base);
 @import '@citolab/qti-components/item.css' layer(base);
 @import 'tailwindcss';
+@config "../tailwind.config.js";
 @plugin '@tailwindcss/typography';
 
 web-canvas {
