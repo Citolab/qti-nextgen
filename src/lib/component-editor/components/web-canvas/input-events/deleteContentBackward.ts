@@ -10,9 +10,10 @@ function getDeletionKind(range) {
 
   // 2b: at boundary (end of one text, start of next)
   if (
-    startContainer !== endContainer &&
-    endContainer.nodeType === Node.ELEMENT_NODE &&
-    startContainer.nodeType === Node.TEXT_NODE
+    startContainer !== endContainer 
+    // &&
+    // endContainer.nodeType === Node.ELEMENT_NODE &&
+    // startContainer.nodeType === Node.TEXT_NODE
   ) {
     return 'boundaryMerge'; // case 2b
   }

@@ -56,3 +56,15 @@ it('should merge the paragraph with the strong element', async () => {
   });
   expect(wce.xmlDocument.documentElement.innerHTML).toBe('<p>HelloWorld<strong>woei</strong></p>');
 });
+
+it('should remove the empty paragraph element', async () => {
+  const wce = setupEditor('<p>Hello</p><p><br /></p><p>World</p>');
+  await setSelectionAndBackspace(wce, {
+    startContainer: wce.xmlDocument.documentElement.children[1],
+    startOffset: 0,
+    endContainer: wce.xmlDocument.documentElement.children[1],
+    endOffset: 0,
+    collapsed: true,
+  });
+  expect(wce.xmlDocument.documentElement.innerHTML).toBe('<p>Hello<br/></p><p>World</p>');
+});

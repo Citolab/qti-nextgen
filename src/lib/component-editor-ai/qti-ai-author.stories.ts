@@ -80,8 +80,6 @@ export const NextGen = {
           class="prose pointer-events-none fixed right-4 bottom-4 p-8  z-[2000] origin-bottom-right scale-[0.3] bg-white shadow-lg"
         ></info-canvas>
 
-        <ai-key-entry></ai-key-entry>
-
         <button-bar
           class="z-20 mb-6 flex divide-x divide-solid divide-slate-200 rounded-md bg-white p-2 shadow shadow-slate-300"
         >

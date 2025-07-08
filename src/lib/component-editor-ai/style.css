@@ -27,6 +27,12 @@ div.error {
   
 }
 
+qti-prompt {
+  cursor: text !important;
+  user-select: text !important;
+  background: transparent !important;
+}
+
 qti-simple-choice {
   cursor: text !important;
   user-select: text !important;

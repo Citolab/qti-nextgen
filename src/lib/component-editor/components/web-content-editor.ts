@@ -1,10 +1,10 @@
-import { html, LitElement, nothing, PropertyValues } from 'lit';
+import { html, LitElement, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { createContext, provide } from '@lit/context';
 import { editContext, EditContext } from '../context/logger';
 import { ContentFunc, Diff, MyModuleInterface } from '../src/types';
 import { XmlSelection, xmlSelectionContext } from '../context/selection';
-import { MyInputEvent, RedoEvent, UndoEvent, WebCanvas } from './web-canvas/web-canvas';
+import { MyInputEvent, RedoEvent, UndoEvent } from './web-canvas/web-canvas';
 
 import * as InputEvents from './web-canvas/input-events';
 
@@ -18,33 +18,22 @@ import {
 } from './xml-store/xml-store.functions';
 import { xPath } from './xml-store/libs/xpath/Xpath';
 
-// export const signalPatch = signal([] as Diff[]);
-// export const signalCanvases = signal([] as Element[]);
-// export const signalSelection = signal(null as StaticRange);
-
 export const patchContext = createContext('signalPatch');
 export const canvasesContext = createContext<{}>('signalCanvases');
 export const selectionContext = createContext<{}>('signalSelection');
 @customElement('web-content-editor')
 export class WebContentEditor extends LitElement {
 
-  // Providing contexts for logger and selection
-
   private _patchAgainstXMLDocument: XMLDocument;
 
-  // ------------------ PRIVATE -----------------
   private _diffDOM: DiffDOM = new DiffDOM({});
   private _diffs: { diffs: Diff[]; collapsed: boolean; startOffset: number; endOffset: number }[] = [];
   private _redoDiffs: { diffs: Diff[]; collapsed: boolean; startOffset: number; endOffset: number }[] = [];
 
-  // ------------------ PUBLIC ------------------
   public xmlDocument: XMLDocument;
   public xmlCanvasElements: Element[];
   activeElement: HTMLElement;
 
-  // ------------------ REACTIVE PROPERTIES ------------------
-
-  // you can specify a canvas-selector to select multiple canvasses
   @property({ type: String, reflect: true, attribute: 'canvas-selector' })
   canvasSelector: string = xmlRootNodeName; // default to the root node
 
@@ -354,9 +343,13 @@ export class WebContentEditor extends LitElement {
     const elementNames = supportedElements;
     const elementPromises = elementNames.map(el => import(`../elements/${el}.ts`).catch(e => e));
 
+    console.log(elementPromises)
+
     const loadedModules = await Promise.all(elementPromises);
     const validModules = loadedModules.filter(module => !(module instanceof Error));
     const elms = new Map<string, MyModuleInterface>();
+
+    console.log(elms)
 
     validModules.forEach((module: MyModuleInterface) => {
       elms.set(module.identifier, module);

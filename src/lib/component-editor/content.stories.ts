@@ -36,7 +36,7 @@ export const Core: Story = {
 
     return html`
       <web-content-editor class="container mx-auto mt-12 block" ref>
-        <web-canvas class="block prose aspect-video bg-white p-8"></web-canvas>
+        <web-canvas class="block prose min-h-60 bg-white p-8"></web-canvas>
 
         <selection-logger></selection-logger>
       </web-content-editor>

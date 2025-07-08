@@ -15,6 +15,7 @@ export default defineConfig({
   test: {
     browser: {
       headless: false,
+      screenshotFailures: false,
     },
     coverage: {
       include: ['src/lib/component-editor/web-canvas/input-events/**/*.ts'],
@@ -85,7 +86,7 @@ export default defineConfig({
             provider: 'playwright',
             headless: true, // Both modes work fine
             viewport: { width: 320, height: 568 },
-            instances: [{browser: 'chromium'}
+            instances: [{browser: 'chromium'},
             ]
           }
         }

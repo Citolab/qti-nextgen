@@ -30,7 +30,7 @@ export const Addons: Story = {
       if (!el) {
         return;
       }
-      el.initialize(`<p></p>`, {
+      el.initialize(example, {
         canvasSelector: '.content',
       });
       el.addEventListener('xml-store-xml', (e: XmlUpdateEvent) => {
@@ -40,10 +40,7 @@ export const Addons: Story = {
 
     return html`
       <web-content-editor
-        canvas-selector=${`[class*="content"]`}
-        .xml=${example}
         ${ref(webContentEditor)}
-        supported-elements="p h1 strong em div"
         class="container mx-auto mt-12 block"
       >
         <error-canvas
