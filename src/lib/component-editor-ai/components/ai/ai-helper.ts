@@ -9,7 +9,7 @@ import type { Message, Prompt } from '../../model';
 
 const API_URL = 'https://api.openai.com/v1/chat/completions';
 const API_URL_IMAGE = 'https://api.openai.com/v1/images/generations';
-const API_KEY = 'YOUR_OPEN_AI_KEY'; // Update with your OpenAI API key
+// const API_KEY = 'YOUR_OPEN_AI_KEY'; // Update with your OpenAI API key
 
 const decoder = new TextDecoder('utf-8');
 
@@ -34,7 +34,7 @@ export const decode = (value: Uint8Array) => {
   return content;
 };
 
-export const getAIChatCompletionReader = async (prompt: Prompt, messages: Message[]) => {
+export const getAIChatCompletionReader = async (prompt: Prompt, messages: Message[], API_KEY: string) => {
   const response = await getResponse(
     'reader',
     JSON.stringify({
@@ -44,20 +44,22 @@ export const getAIChatCompletionReader = async (prompt: Prompt, messages: Messag
       max_tokens: prompt.maxTokens ?? 300,
       temperature: 1,
       stream: true
-    })
+    }),
+    API_KEY
   );
   // Read the response as a stream of data
   return response.body.getReader();
 };
 
-export const getAIImage = async (prompt: Prompt, messages: Message[]) => {
-  const translation = await getAITranslation(prompt, messages[messages.length - 1].content);
+export const getAIImage = async (prompt: Prompt, messages: Message[], API_KEY: string) => {
+  const translation = await getAITranslation(prompt, messages[messages.length - 1].content, API_KEY);
 
   const response = await getResponse(
     'image',
     JSON.stringify({
       prompt: translation
-    })
+    }),
+    API_KEY
   );
   if (response.ok) {
     const image = await response.json();
@@ -66,7 +68,7 @@ export const getAIImage = async (prompt: Prompt, messages: Message[]) => {
   return null;
 };
 
-export const getAIChatCompletion = async (prompt: Prompt, messages: Message[]) => {
+export const getAIChatCompletion = async (prompt: Prompt, messages: Message[], API_KEY: string) => {
   const response = await getResponse(
     'reader',
     JSON.stringify({
@@ -75,7 +77,8 @@ export const getAIChatCompletion = async (prompt: Prompt, messages: Message[]) =
       model: 'gpt-3.5-turbo',
       max_tokens: prompt.maxTokens ?? 300,
       temperature: 1
-    })
+    }),
+    API_KEY
   );
 
   if (response.ok) {
@@ -84,7 +87,7 @@ export const getAIChatCompletion = async (prompt: Prompt, messages: Message[]) =
   }
 };
 
-const getAITranslation = async (prompt: Prompt, text: string) => {
+const getAITranslation = async (prompt: Prompt, text: string, API_KEY: string) => {
   const messages = [
     {
       role: 'system',
@@ -93,11 +96,11 @@ const getAITranslation = async (prompt: Prompt, text: string) => {
     { role: 'user', content: `translate in English: ${text}` }
   ] as Message[];
 
-  return await getAIChatCompletion(prompt, messages);
+  return await getAIChatCompletion(prompt, messages, API_KEY);
 };
 
 // Fetch the response from the OpenAI API with the signal from AbortController
-const getResponse = async (type: 'reader' | 'response' | 'image', body: string) => {
+const getResponse = async (type: 'reader' | 'response' | 'image', body: string, API_KEY: string) => {
   // Create a new AbortController instance
   controller = new AbortController();
   const signal = controller.signal;

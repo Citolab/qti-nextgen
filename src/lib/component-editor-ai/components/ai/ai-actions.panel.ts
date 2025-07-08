@@ -98,7 +98,7 @@ export class AIActions extends PanelMixin(LitElement) {
 
     if (action.prompt.promptType === 'image') {
       this.setStateAsync('loading');
-      const image = await getAIImage(prompt, initialMessages);
+      const image = await getAIImage(prompt, initialMessages, this.logger.API_KEY);
       this.currentSuggestion = image;
       this.setStateAsync('editSuggestion');
     } else {
@@ -120,7 +120,7 @@ export class AIActions extends PanelMixin(LitElement) {
     await this.setStateAsync('loading');
     this.currentSuggestion = '';
 
-    await getAIChatCompletionReader(prompt, messages)
+    await getAIChatCompletionReader(prompt, messages, this.logger.API_KEY)
       .then(async reader => {
         await this.setStateAsync('loadingSuggestion');
 

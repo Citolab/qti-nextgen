@@ -15,6 +15,7 @@ export interface EditContext {
   xmlRange: Range | null;
   createRangeXML: (range: StaticRangeInit) => Range | null;
   apply: () => void;
+  API_KEY?: string;
 }
 
 export const editContext = createContext<EditContext>('editContext');

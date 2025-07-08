@@ -17,6 +17,7 @@ import {
   formatXml
 } from './xml-store/xml-store.functions';
 import { xPath } from './xml-store/libs/xpath/Xpath';
+import { findElement, getUpperParent } from './utilities';
 
 export const patchContext = createContext<Diff[]>('signalPatch');
 export const canvasesContext = createContext<Element[]>('signalCanvases');
@@ -64,6 +65,11 @@ export class WebContentEditor extends LitElement {
 
   constructor() {
     super();
+    // Restore API_KEY from localStorage if available
+    const storedKey = localStorage.getItem('API_KEY');
+    if (storedKey) {
+      this.logger = { ...this.logger, API_KEY: storedKey };
+    }
     this.addEventListener('canvas-selectionchange', this.onCanvasSelectionChange.bind(this));
     this.addEventListener(MyInputEvent.eventName, this.InputEventHandler.bind(this));
     this.addEventListener(UndoEvent.eventName, this.undo.bind(this));
@@ -138,49 +144,49 @@ export class WebContentEditor extends LitElement {
     this.signalSelection = xmlSelectionRange;
   }
 
-  // public addNewContent(data?: string) {
-  //   const xmlRange = this.createRangeXML(this.logger.xmlRange);
+  public addNewContent(data?: string) {
+    const xmlRange = this.createRangeXML(this.logger.xmlRange);
 
-  //   //create new div
-  //   const newContent = this.xmlDocument.createElement('div');
-  //   newContent.innerHTML = data;
+    //create new div
+    const newContent = this.xmlDocument.createElement('div');
+    newContent.innerHTML = data;
 
-  //   const upperParentNode = getUpperParent(xmlRange);
-  //   //place in new html tag after current position or replace when empty
-  //   if (upperParentNode.textContent.trim()) {
-  //     getUpperParent(xmlRange).after(newContent);
-  //   } else {
-  //     getUpperParent(xmlRange).replaceWith(newContent);
-  //   }
+    const upperParentNode = getUpperParent(xmlRange, this.xmlCanvasElements);
+    //place in new html tag after current position or replace when empty
+    if (upperParentNode.textContent.trim()) {
+      getUpperParent(xmlRange, this.xmlCanvasElements).after(newContent);
+    } else {
+      getUpperParent(xmlRange, this.xmlCanvasElements).replaceWith(newContent);
+    }
 
-  //   const xmlSelectionRange = {
-  //     endContainer: newContent,
-  //     endOffset: 0,
-  //     collapsed: true,
-  //     startContainer: newContent,
-  //     startOffset: 0
-  //   };
+    const xmlSelectionRange = {
+      endContainer: newContent,
+      endOffset: 0,
+      collapsed: true,
+      startContainer: newContent,
+      startOffset: 0
+    };
 
-  //   this.apply();
-  //   signalSelection.set(xmlSelectionRange);
-  // }
+    this.apply();
+    this.signalSelection = xmlSelectionRange;
+  }
 
-  // public editContent(el: Element, value?: string) {
-  //   const xmlRange = this.createRangeXML(this.logger.xmlRange);
-  //   const xmlEl = findElement(xmlRange, el.nodeName);
-  //   xmlEl.outerHTML = value;
+  public editContent(el: Element, value?: string) {
+    const xmlRange = this.createRangeXML(this.logger.xmlRange);
+    const xmlEl = findElement(xmlRange, el.nodeName);
+    xmlEl.outerHTML = value;
 
-  //   const xmlSelectionRange = {
-  //     endContainer: xmlEl,
-  //     endOffset: 0,
-  //     collapsed: true,
-  //     startContainer: xmlEl,
-  //     startOffset: 0
-  //   };
+    const xmlSelectionRange = {
+      endContainer: xmlEl,
+      endOffset: 0,
+      collapsed: true,
+      startContainer: xmlEl,
+      startOffset: 0
+    };
 
-  //   this.apply();
-  //   signalSelection.set(xmlSelectionRange);
-  // }
+    this.apply();
+    this.signalSelection = xmlSelectionRange;
+  }
 
   changeSelection(range: StaticRange) {
     const rangeXML = this.createRangeXML(range);
@@ -302,7 +308,22 @@ export class WebContentEditor extends LitElement {
    * Renders the editor's content. If there are supported elements, it renders the slot.
    */
   render() {
-    return html`${this.logger.elms.size ? html`<slot></slot>` : nothing}`;
+    return html`
+      <input
+        type="text"
+        .value="${this.logger.API_KEY ?? ''}"
+        @input="${(e: Event) => this._onApiKeyInput(e)}"
+        placeholder="Enter API Key"
+        style="position: absolute; top: 0; left: 0; width: 100%; z-index: 1000; background: white; border: 1px solid #ccc; padding: 8px;"
+      />
+      ${this.logger.elms.size ? html`<slot></slot>` : nothing}
+    `;
+  }
+
+  private _onApiKeyInput(e: Event) {
+    const value = (e.target as HTMLInputElement).value;
+    this.logger = { ...this.logger, API_KEY: value };
+    localStorage.setItem('API_KEY', value);
   }
 
   // ------------------ PRIVATE ------------------
@@ -328,12 +349,13 @@ export class WebContentEditor extends LitElement {
 
       // ai functions, add new content, edit content, change selection
       canvases: () => this.xmlCanvasElements,
-      // addNewContent: value => this.addNewContent(value),
-      // editContent: (el, value) => this.editContent(el, value),
+      addNewContent: value => this.addNewContent(value),
+      editContent: (el, value) => this.editContent(el, value),
       changeSelection: range => this.changeSelection(range),
 
       createRangeXML: (range: StaticRangeInit) => this.createRangeXML(range),
       apply: () => this.apply(),
+      API_KEY: '',
 
       xmlRange: null
     };
