@@ -3,7 +3,7 @@ import { createRef, ref } from 'lit-html/directives/ref.js';
 
 import example from './example.xml?raw';
 import './index';
-import './style.css';
+// import '../style.css';
 
 import { WebCanvas } from '../component-editor/components/web-canvas/web-canvas';
 import { WebContentEditor, XmlUpdateEvent } from '../component-editor/components/web-content-editor';

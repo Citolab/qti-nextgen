@@ -2,7 +2,7 @@ import { html } from 'lit';
 import { createRef, ref } from 'lit-html/directives/ref.js';
 
 import example from './example.xml?raw';
-import './style.css';
+// import '../style.css';
 
 import '@editor/content';
 import '@editor/content-addons';

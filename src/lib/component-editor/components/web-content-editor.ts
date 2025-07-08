@@ -71,15 +71,14 @@ export class WebContentEditor extends LitElement {
   }
 
   async connectedCallback(): Promise<void> {
-      super.connectedCallback();
-      await this.updateComplete; // wait for the element to be fully initialized
-          this.dispatchEvent(
-      new CustomEvent('web-content-editor-initialized', {
+    super.connectedCallback();
+    await this.updateComplete; // wait for the element to be fully initialized
+    this.dispatchEvent(
+      new Event('web-content-editor-initialized', {
         bubbles: true,
         composed: true
       })
     );
-
   }
 
   initialize(xml: string, options: { supportedElements?: string; canvasSelector?: string }) {
@@ -91,18 +90,12 @@ export class WebContentEditor extends LitElement {
   }
 
   public async InputEventHandler(event: MyInputEvent): Promise<void> {
-    const xmlRange = this.createRangeXML(event.data.range);
+    const { inputType, range, data } = event.data;
+    const xmlRange = this.createRangeXML(range);
 
-    // console.log(event.data.inputType, event.data.range, {
-    //   startContainer: xmlRange.startContainer,
-    //   startOffset: xmlRange.startOffset,
-    //   endContainer: xmlRange.endContainer,
-    //   endOffset: xmlRange.endOffset,
-    //   collapsed: xmlRange.collapsed,
-    //   commonAncestorContainer: xmlRange.commonAncestorContainer
-    // }, event.data.data);
+    this.dispatchEvent(new BeforeInputEvent({ inputType, xmlRange, data }));
 
-    let selectionRange = InputEvents[event.data.inputType](this.logger.elms, xmlRange, event.data.data);
+    let selectionRange = InputEvents[inputType](this.logger.elms, xmlRange, data);
 
     event.range = selectionRange;
 
@@ -125,6 +118,7 @@ export class WebContentEditor extends LitElement {
     this.xmlDocument = filledDoc;
 
     this.xmlCanvasElements = Array.from(this.xmlDocument.querySelectorAll(this.canvasSelector));
+    this._observeXMLMutations();
     normalizeCanvasElements(this.xmlCanvasElements);
 
     this._patchAgainstXMLDocument = createEmptyPatchDocument(xmlRootNodeName);
@@ -133,8 +127,6 @@ export class WebContentEditor extends LitElement {
 
     // this.dispatchEvent(new CanvasesEvent(this.xmlCanvasElements));
     this.signalCanvases = this.xmlCanvasElements;
-
-    this._observeXMLMutations();
   }
 
   public updateXML(contentFunc: ContentFunc, data?: string) {
@@ -414,5 +406,19 @@ export class CanvasesEvent extends Event {
   static readonly eventName = 'canvases';
   constructor(public canvases: Element[]) {
     super(CanvasesEvent.eventName, { bubbles: true, composed: true });
+  }
+}
+
+export class BeforeInputEvent extends Event {
+  static readonly eventName = 'before-input';
+  constructor(public data: { inputType: string; xmlRange: StaticRange; data: string }) {
+    super(BeforeInputEvent.eventName, { bubbles: true, composed: true });
+  }
+}
+declare global {
+  interface HTMLElementEventMap {
+    [XmlUpdateEvent.eventName]: XmlUpdateEvent;
+    [CanvasesEvent.eventName]: CanvasesEvent;
+    [BeforeInputEvent.eventName]: BeforeInputEvent;
   }
 }
