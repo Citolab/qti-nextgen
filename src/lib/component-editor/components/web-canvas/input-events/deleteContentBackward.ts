@@ -42,7 +42,9 @@ export const deleteContentBackward: IInputEvent<string> = async (elMap, range, d
 
       const length = sc.textContent?.length || 0;
 
-      sc.textContent = sc.textContent + ec.textContent;
+      const parent = sc.parentElement;
+      const children = Array.from(ec.childNodes);
+      parent.append(...children); // append the text content of the endContainer to the startContainer
       ec.remove();
 
       return {

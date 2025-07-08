@@ -37,8 +37,8 @@ export const NextGen = {
       }
       const xml = `<p></p>`;
       el.initialize(example, {
-        'supported-elements': 'p this-is-the-root-tag qti-simple-choice ul li qti-choice-interaction',
-        'canvas-selector': '[class*="qti-layout-col"]'
+        supportedElements: 'p this-is-the-root-tag qti-simple-choice ul li qti-choice-interaction',
+        canvasSelector: '[class*="qti-layout-col"]'
       });
       el.addEventListener('xml-store-xml', (e: XmlUpdateEvent) => {
         xmlString.value.innerText = e.xml.xml;

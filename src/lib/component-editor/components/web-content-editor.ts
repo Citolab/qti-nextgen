@@ -17,7 +17,6 @@ import {
   formatXml
 } from './xml-store/xml-store.functions';
 import { xPath } from './xml-store/libs/xpath/Xpath';
-import { start } from 'repl';
 
 // export const signalPatch = signal([] as Diff[]);
 // export const signalCanvases = signal([] as Element[]);
@@ -83,23 +82,23 @@ export class WebContentEditor extends LitElement {
     this.addEventListener(RedoEvent.eventName, this.redo.bind(this));
   }
 
-  initialize(xml: string, arg1: { 'supported-elements': string; 'canvas-selector': string; }) {
-    this.canvasSelector = arg1['canvas-selector'] || xmlRootNodeName;
-    this.loadCustomElements(arg1['supported-elements']?.split(' ') || [])
+  initialize(xml: string, options: { supportedElements?: string; canvasSelector?: string; }) {
+    this.canvasSelector = options.canvasSelector || xmlRootNodeName;
+    this.loadCustomElements(options.supportedElements?.split(' ') || ['p', 'h1', 'this-is-the-root-tag', 'em', 'strong', 'ul' , 'li'])
    this.initializeXML(xml);
   }
 
   public async InputEventHandler(event: MyInputEvent): Promise<void> {
     const xmlRange = this.createRangeXML(event.data.range);
     
-    console.log(event.data.inputType, event.data.range, {
-      startContainer: xmlRange.startContainer,
-      startOffset: xmlRange.startOffset,
-      endContainer: xmlRange.endContainer,
-      endOffset: xmlRange.endOffset,
-      collapsed: xmlRange.collapsed,
-      commonAncestorContainer: xmlRange.commonAncestorContainer
-    }, event.data.data);
+    // console.log(event.data.inputType, event.data.range, {
+    //   startContainer: xmlRange.startContainer,
+    //   startOffset: xmlRange.startOffset,
+    //   endContainer: xmlRange.endContainer,
+    //   endOffset: xmlRange.endOffset,
+    //   collapsed: xmlRange.collapsed,
+    //   commonAncestorContainer: xmlRange.commonAncestorContainer
+    // }, event.data.data);
 
     
     let selectionRange = InputEvents[event.data.inputType](this.logger.elms, xmlRange, event.data.data);

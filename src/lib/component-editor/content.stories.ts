@@ -28,11 +28,7 @@ export const Core: Story = {
     // called whenever the web-content-editor is initialized
     function initialize(el: WebContentEditor) {
       if (!el) { return }
-      const xml = `<h1></h1>`;
-      el.initialize(xml, {
-        'supported-elements': 'p h1 this-is-the-root-tag',
-        'canvas-selector': 'this-is-the-root-tag'
-      });
+      el.initialize(`<h1></h1>`, {});
       el.addEventListener('xml-store-xml', (e: XmlUpdateEvent) => {
         xmlString.value.innerText = e.xml.xml;
       });

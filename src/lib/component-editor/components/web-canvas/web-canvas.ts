@@ -4,7 +4,7 @@ import { LitElement } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { Diff } from '../../src/types';
 import { xmlRootNodeName } from '../../elements/this-is-the-root-tag';
-import { canvasesContext, patchContext } from '../web-content-editor';
+import { canvasesContext, patchContext, selectionContext } from '../web-content-editor';
 import { xPath } from '../xml-store/libs/xpath/Xpath';
 import { enableDragSelect } from './drag-select';
 
@@ -33,6 +33,11 @@ export class WebCanvas extends LitElement {
       context: canvasesContext,
       subscribe: true,
       callback: (canvases: Element[]) => canvases?.length && this.initializeCanvases(canvases)
+    });
+    new ContextConsumer(this, {
+      context: selectionContext,
+      subscribe: true,
+      callback: (range: StaticRange) => range && this._restoreSelection(range)
     });
   }
 

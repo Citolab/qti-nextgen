@@ -14,7 +14,6 @@ export const InlineCSSPlugin = {
     }));
     onLoad({ filter: /.*/, namespace: 'inline' }, async args => {
       try {
-        // console.log('enter onLoad', args);
         const cssFullPath = join(args.pluginData.resolveDir, args.path.slice(0, -7));
         const cssContent = fs.readFileSync(cssFullPath, 'utf8');
         const processResult = await postcss((postcssConfig as any)?.plugins).process(cssContent, {

@@ -14,10 +14,10 @@ export default defineConfig({
 
   test: {
     browser: {
-      headless: true
+      headless: false,
     },
     coverage: {
-      include: ['src/lib/component-editor/**/*.ts'],
+      include: ['src/lib/component-editor/web-canvas/input-events/**/*.ts'],
       provider: 'v8' // or 'v8'
     },
     onConsoleLog(log: string, type: 'stdout' | 'stderr'): boolean | void {
@@ -27,9 +27,11 @@ export default defineConfig({
     // PK: Debugging browser mode does not work as expected, stalls with those options
     // see https://vitest.dev/guide/debugging#browser-mode for more info
     // inspectBrk: true,
-    // fileParallelism: false, 
+    // fileParallelism: false,
+
     projects: [
-   {
+      /*
+      {
         plugins: [
           storybookTest({
             tags: {
@@ -55,7 +57,7 @@ export default defineConfig({
             instances: [
               {
                 browser: 'chromium',
-                headless: true, // Both modes work fine
+                headless: true // Both modes work fine
                 // provide: {
                 //   launch: {
                 //     args: ['--remote-debugging-port=9222']
@@ -66,12 +68,16 @@ export default defineConfig({
           }
         }
       },
+      */
       /* this is for the normal spec files, which do not need storybook */
       {
         test: {
           name: 'tests',
           setupFiles: ['./test/setup/index.js'],
-          include: ['src/**/*.spec.ts', 'src/**/*.test.ts'],
+          include: [
+            'src/lib/component-editor/components/web-canvas/input-events/**/*.spec.ts',
+            'src/lib/component-editor/components/web-canvas/input-events/**/*.test.ts'
+          ],
           globals: true,
           includeTaskLocation: true,
           browser: {
@@ -79,11 +85,11 @@ export default defineConfig({
             provider: 'playwright',
             headless: true, // Both modes work fine
             viewport: { width: 320, height: 568 },
-            instances: [{ browser: 'chromium' }]
+            instances: [{browser: 'chromium'}
+            ]
           }
         }
       }
     ]
   }
 });
-

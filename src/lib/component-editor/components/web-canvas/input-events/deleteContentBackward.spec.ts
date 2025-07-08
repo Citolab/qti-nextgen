@@ -1,69 +1,58 @@
-import { RangeXML } from '../../../src/RangeXML';
-import { deleteContentBackward } from './deleteContentBackward';
-import { insertCursorsIntoContent, parseContentWithCursors } from '../../../../utilities/xmlwithcursorparser';
-import * as pModule from '../../../elements/p';
-import * as thisIsTheRootTagModule from '../../../elements/this-is-the-root-tag';
+
 import '../../../../utilities/xmlMatcher';
+import { expect } from 'vitest';
+import { userEvent } from '@vitest/browser/context';
+import { WebContentEditor } from '../../web-content-editor';
+import '../../../index';
+
+function setupEditor(xml: string) {
+  document.body.innerHTML = `<web-content-editor><web-canvas></web-canvas></web-content-editor>`;
+  const wce = document.body.querySelector<WebContentEditor>('web-content-editor');
+  wce.initialize(xml, {});
+  return wce;
+}
+
+async function setSelectionAndBackspace(wce: WebContentEditor, selection: any) {
+  await userEvent.click(wce);
+  wce.signalSelection = selection;
+  await userEvent.keyboard('{Backspace}');
+}
 
 
-import { MyModuleInterface } from '../../../src/types';
-import { xmlRootNodeName } from '../../../elements/this-is-the-root-tag';
-
-const xml = String.raw;
-
-const map = new Map<string, MyModuleInterface>([
-  ["p", pModule],
-  [xmlRootNodeName, thisIsTheRootTagModule]
-])
-
-describe('DeleteContentBackward', () => {
-
-  it('remove text with nested cursor positions and commonAncestor', async () => {  
-      const input = xml`<p>!h¡oi</p>`;
-      const assert = xml`<p>!¡oi</p>`;
-
-      const { xmlDocument, range } = parseContentWithCursors(input);  
-      const newCursorPosition = await deleteContentBackward(map, range);
-      const output = insertCursorsIntoContent(xmlDocument, newCursorPosition)
-  
-      expect(output).toMatchXml(assert);
+it('should merge the paragraph with the heading', async () => {
+  const wce = setupEditor('<h1>Hello</h1><p>World</p>');
+  await setSelectionAndBackspace(wce, {
+    startContainer: wce.xmlDocument.documentElement.lastElementChild.firstChild as Text,
+    startOffset: 0,
+    endContainer: wce.xmlDocument.documentElement.lastElementChild.firstChild as Text,
+    endOffset: 0,
+    collapsed: true,
   });
-  
+  expect(wce.xmlDocument.documentElement.innerHTML).toBe('<h1>HelloWorld</h1>');
+});
 
-  it('remove text - merge h1', async () => {
-    const input = xml`
-      <h1>hoi!</h1>
-      <p>¡tekst</p>`;
-    const output = xml`<h1>hoi!¡tekst</h1>`;
 
-    const { xmlDocument, range: range } = parseContentWithCursors(input);
-    
-    const newCursorPosition = await deleteContentBackward(map, range);
-
-    expect(insertCursorsIntoContent(xmlDocument, newCursorPosition)).toMatchXml(output);
+it('should update the display text when user types in the input', async () => {
+  const wce = setupEditor('<p>Hello</p>');
+  await setSelectionAndBackspace(wce, {
+    startContainer: wce.xmlDocument.documentElement.firstElementChild.firstChild as Text,
+    startOffset: 4,
+    endContainer: wce.xmlDocument.documentElement.firstElementChild.firstChild as Text,
+    endOffset: 4,
+    collapsed: true,
   });
+  expect(wce.xmlDocument.documentElement.innerHTML).toBe('<p>Helo</p>');
+});
 
-  it('remove text - remove entire p content', async () => {
-    const content = xml`<${xmlRootNodeName}>
-                    <h1>hoi</h1>
-                    <p>tekst</p>
-                </${xmlRootNodeName}>`;
 
-    // create xmlDocument from content
-    const parser = new DOMParser();
-    const xmlDocument = parser.parseFromString(content, 'application/xml');
-    const p = xmlDocument.querySelector('p') as HTMLElement;
-    const h1 = xmlDocument.querySelector('h1') as HTMLElement;
-    const range = {
-      startContainer: p.firstChild,
-      startOffset: 0,
-      endContainer: p.firstChild,
-      endOffset: p.firstChild?.textContent?.length || 0
-    } as StaticRangeInit;
-
-    const rangeXML = new RangeXML(range);
-    await deleteContentBackward(map, rangeXML);
-    expect(h1.firstChild?.textContent).toBe('hoi');
-    // expect(p.firstChild as Element).toBeNull();
+it('should merge the paragraph with the strong element', async () => {
+  const wce = setupEditor('<p>Hello</p><p>World <strong>woei</strong></p>');
+  await setSelectionAndBackspace(wce, {
+    startContainer: wce.xmlDocument.documentElement.lastElementChild.firstChild as Text,
+    startOffset: 0,
+    endContainer: wce.xmlDocument.documentElement.lastElementChild.firstChild as Text,
+    endOffset: 0,
+    collapsed: true,
   });
+  expect(wce.xmlDocument.documentElement.innerHTML).toBe('<p>HelloWorld<strong>woei</strong></p>');
 });

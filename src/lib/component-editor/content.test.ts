@@ -14,10 +14,7 @@ test('should update the display text when user types in the input', async () => 
   const root = document.body.querySelector<HTMLElement>(xmlRootNodeName);
   const wce = document.body.querySelector<WebContentEditor>('web-content-editor');
   // Set default content
-  wce.initialize('<p>Hello World</p>', {
-        'supported-elements': 'p h1 this-is-the-root-tag',
-        'canvas-selector': 'this-is-the-root-tag'
-  });
+  wce.initialize('<p>Hello World</p>', {});
 
   await userEvent.click(root); // Focus the root element
   const paragraph = root.querySelector<HTMLParagraphElement>('p');

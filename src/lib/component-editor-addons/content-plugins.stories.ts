@@ -30,10 +30,8 @@ export const Addons: Story = {
       if (!el) {
         return;
       }
-      const xml = `<p></p>`;
-      el.initialize(example, {
-        'supported-elements': 'p this-is-the-root-tag',
-        'canvas-selector': 'this-is-the-root-tag'
+      el.initialize(`<p></p>`, {
+        canvasSelector: '.content',
       });
       el.addEventListener('xml-store-xml', (e: XmlUpdateEvent) => {
         xmlString.value.innerText = e.xml.xml;
@@ -105,7 +103,7 @@ export const Addons: Story = {
 
         <!-- <div class="relative h-auto rounded border-solid border-slate-200 bg-white p-12"> -->
         <web-canvas
-          class="block splitline relative h-auto bg-white text-gray-800"
+          class="splitline relative block h-auto bg-white text-gray-800"
           ${ref(webCanvas)}
           style="anchor-name: --target"
         ></web-canvas>
