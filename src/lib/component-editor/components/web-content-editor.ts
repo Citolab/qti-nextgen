@@ -23,7 +23,6 @@ export const canvasesContext = createContext<{}>('signalCanvases');
 export const selectionContext = createContext<{}>('signalSelection');
 @customElement('web-content-editor')
 export class WebContentEditor extends LitElement {
-
   private _patchAgainstXMLDocument: XMLDocument;
 
   private _diffDOM: DiffDOM = new DiffDOM({});
@@ -71,15 +70,29 @@ export class WebContentEditor extends LitElement {
     this.addEventListener(RedoEvent.eventName, this.redo.bind(this));
   }
 
-  initialize(xml: string, options: { supportedElements?: string; canvasSelector?: string; }) {
+  async connectedCallback(): Promise<void> {
+      super.connectedCallback();
+      await this.updateComplete; // wait for the element to be fully initialized
+          this.dispatchEvent(
+      new CustomEvent('web-content-editor-initialized', {
+        bubbles: true,
+        composed: true
+      })
+    );
+
+  }
+
+  initialize(xml: string, options: { supportedElements?: string; canvasSelector?: string }) {
     this.canvasSelector = options.canvasSelector || xmlRootNodeName;
-    this.loadCustomElements(options.supportedElements?.split(' ') || ['p', 'h1', 'this-is-the-root-tag', 'em', 'strong', 'ul' , 'li'])
-   this.initializeXML(xml);
+    this.loadCustomElements(
+      options.supportedElements?.split(' ') || ['p', 'h1', 'this-is-the-root-tag', 'em', 'strong', 'ul', 'li']
+    );
+    this.initializeXML(xml);
   }
 
   public async InputEventHandler(event: MyInputEvent): Promise<void> {
     const xmlRange = this.createRangeXML(event.data.range);
-    
+
     // console.log(event.data.inputType, event.data.range, {
     //   startContainer: xmlRange.startContainer,
     //   startOffset: xmlRange.startOffset,
@@ -89,7 +102,6 @@ export class WebContentEditor extends LitElement {
     //   commonAncestorContainer: xmlRange.commonAncestorContainer
     // }, event.data.data);
 
-    
     let selectionRange = InputEvents[event.data.inputType](this.logger.elms, xmlRange, event.data.data);
 
     event.range = selectionRange;
@@ -343,13 +355,9 @@ export class WebContentEditor extends LitElement {
     const elementNames = supportedElements;
     const elementPromises = elementNames.map(el => import(`../elements/${el}.ts`).catch(e => e));
 
-    console.log(elementPromises)
-
     const loadedModules = await Promise.all(elementPromises);
     const validModules = loadedModules.filter(module => !(module instanceof Error));
     const elms = new Map<string, MyModuleInterface>();
-
-    console.log(elms)
 
     validModules.forEach((module: MyModuleInterface) => {
       elms.set(module.identifier, module);
@@ -376,7 +384,7 @@ export class WebContentEditor extends LitElement {
         endOffset: xmlRange.endOffset,
         startContainer: xmlRange.startContainer,
         endContainer: xmlRange.endContainer,
-        collapsed: xmlRange.collapsed,
+        collapsed: xmlRange.collapsed
       },
       element: xmlRange.commonAncestorContainer
     };
