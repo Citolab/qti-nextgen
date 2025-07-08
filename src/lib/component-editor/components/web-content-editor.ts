@@ -106,10 +106,10 @@ export class WebContentEditor extends LitElement {
 
   initializeXML(xml: string): void {
     const parser = new DOMParser();
+
+// in the xml strip all whitespace and newlines between elements
     const filledDoc = parser.parseFromString(`<${xmlRootNodeName}>${xml}</${xmlRootNodeName}>`, 'text/xml');
-
     filledDoc.normalize();
-
     filledDoc.createElement = (tagName: string) => {
       // we need override the createElement to create elements without namespace
       return filledDoc.createElementNS(null, tagName.toLocaleLowerCase());

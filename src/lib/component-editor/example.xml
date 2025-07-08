@@ -1,9 +1,9 @@
 <div>
     <h1>hoi</h1>
     <p>tekst</p>
-    <ul>
-        <li>item 1</li>
-        <li>item 2</li>
-        <li>item 3</li>
-    </ul>
+    <qti-choice-interaction>
+        <qti-simple-choice>item 1</qti-simple-choice>
+        <qti-simple-choice>item 2</qti-simple-choice>
+        <qti-simple-choice>item 3</qti-simple-choice>
+    </qti-choice-interaction>
 </div>

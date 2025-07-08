@@ -1,38 +1,7 @@
 @import 'modern-normalize/modern-normalize.css' layer(base);
+@import '@citolab/qti-components/item.css' layer(base);
 @import 'tailwindcss';
 @plugin '@tailwindcss/typography';
-
-
-web-canvas {
-  [part='canvas'] {
-    @apply block outline-hidden focus:ring-2 focus:ring-offset-2 h-full;
-  }
-}
-
-/* *:not(:has(*)) {
-  outline:1px solid red;
-}
-
-*:empty:after {
-  content: '';
-  border: 2px solid blue;
-} */
-
-*:empty:before {
-  content: '\0a';
-  white-space: pre-wrap;
-}
-
-.selected { outline: 2px solid #007bff; background: rgba(0,123,255,0.2); }
-
-
-qti-item-body,
-div.qti-layout-row {
-  @apply h-full;
-}
-h1 {
-  @apply text-base;
-}
 
 web-canvas {
   &.splitline {
@@ -42,13 +11,29 @@ web-canvas {
     background-repeat: no-repeat;
   }
   [part='canvas'] {
-    @apply h-full outline-hidden focus:ring-2 focus:ring-offset-0;
+    @apply block prose h-full w-full outline-hidden focus:ring-2 focus:ring-offset-2;
   }
+  @apply z-20;
+}
+
+*:empty:after {
+  content: '\0a';
+  white-space: pre-wrap;
+}
+
+/* *:read-write {
+  border:2px solid blue;
+  white-space :'pre-wrap';
+  white-space :'break-spaces';
+} */
+
+.selected {
+  outline: 2px solid #007bff;
+  background: rgba(0, 123, 255, 0.2);
 }
 
 div.error {
   @apply -z-10 origin-center scale-125 border border-b-red-500;
-  
 }
 
 qti-prompt {
@@ -63,11 +48,6 @@ qti-simple-choice {
   background: transparent !important;
 }
 
-*:empty:before {
-  content: '\0a';
-  white-space: pre-wrap;
-}
-
 .activeButton {
   position-anchor: --activeElement;
   position: fixed;
@@ -77,18 +57,8 @@ qti-simple-choice {
   z-index: 1000;
 }
 
-.selected { outline: 2px solid #007bff; background: rgba(0,123,255,0.2); }
-
-
-web-canvas {
-  [part='canvas'] {
-    @apply outline-hidden focus:ring-2 focus:ring-offset-8 prose;
-  }
-  @apply z-20;
-}
-
 div.error {
-  @apply -z-10 origin-center scale-125 border-l-0 border-t-0 border-r-0 border-2 border-b-red-500;
+  @apply -z-10 origin-center scale-125 border-2 border-t-0 border-r-0 border-l-0 border-b-red-500;
 }
 
 .two-column {
@@ -98,19 +68,7 @@ div.error {
   }
 }
 
-h1 {
-  @apply mt-0;
+.selected {
+  outline: 2px solid #007bff;
+  background: rgba(0, 123, 255, 0.2);
 }
-
-/* *:read-write {
-  border:2px solid blue;
-  white-space :'pre-wrap';
-  white-space :'break-spaces';
-} */
-
-p:empty:before {
-  content: '\0a';
-  white-space: pre-wrap;
-}
-
-.selected { outline: 2px solid #007bff; background: rgba(0,123,255,0.2); }

@@ -37,8 +37,9 @@ export const Core: Story = {
       });
       el.addEventListener('web-content-editor-initialized', () => {
         // This is a good place to do any setup that requires the editor to be initialized
-
-        el.initialize(example, {});
+        el.initialize(example, {
+          supportedElements: 'p this-is-the-root-tag qti-simple-choice ul li qti-choice-interaction',
+        });
         el.addEventListener('xml-store-xml', (e: XmlUpdateEvent) => {
           xmlString.value.innerText = e.xml.xml;
         });
@@ -50,12 +51,8 @@ export const Core: Story = {
         <web-canvas class="prose block min-h-60 bg-white p-8"></web-canvas>
         <pre class="block overflow-x-auto border p-4 text-xs text-gray-600" ${ref(xmlString)}></pre>
         <selection-logger class="col-span-2 whitespace-nowrap text-sm text-gray-500"></selection-logger>
-
         <pre class="col-span-2 border p-4 text-xs text-gray-600" ${ref(inputEventString)}></pre>
-
       </web-content-editor>
-
-      
     `;
   }
 };

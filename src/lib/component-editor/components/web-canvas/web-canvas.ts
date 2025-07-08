@@ -70,8 +70,8 @@ export class WebCanvas extends LitElement {
       canvas.setAttribute('aria-multiline', 'true');
       canvas.setAttribute('aria-label', 'Question content');
       canvas.setAttribute('aria-label', 'Question content');
-      canvas.style.whiteSpace = 'pre-wrap';
-      canvas.style.whiteSpace = 'break-spaces';
+      // canvas.style.whiteSpace = 'pre-wrap';
+      // canvas.style.whiteSpace = 'break-spaces';
       // style, just for visibility in tests and such
       // canvas.style.cssText = 'display:block;border:1px solid #000000;padding:2px;width:auto;height:100%';
     });
