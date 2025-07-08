@@ -27,12 +27,10 @@ export class MenuAuthoring extends LitElement {
     const addComponentPanel = this._panels.find(p => p.appear === 'onslash').el;
 
     if (e.key === '/') {
-      e.preventDefault();
+      // e.preventDefault();
       const selection = (this.closest('web-content-editor').getRootNode() as Document).getSelection();
       const range = typeof selection?.rangeCount === 'number' && selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
 
-
-      console.log(range)
       // buggy behavior in br, explicitely select parent
       if (range && range.startContainer.nodeName === 'BR') {
         const parentElement = range.startContainer.parentElement;
@@ -52,11 +50,12 @@ export class MenuAuthoring extends LitElement {
 
       // place panel
       if (range !== null) {
+        const sc = range.startContainer;
+        const scElement = sc.nodeType === Node.ELEMENT_NODE ? (sc as HTMLElement) : sc.parentElement;
         const virtualEl = {
-          getBoundingClientRect: () => range.getBoundingClientRect()
+          getBoundingClientRect: () => scElement.getBoundingClientRect()
         };
 
-        console.log('virtualEl', virtualEl);
         computePosition(virtualEl, addComponentPanel, {
           placement: 'top',
           middleware: [offset(10)]
