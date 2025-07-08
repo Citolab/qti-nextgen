@@ -12,7 +12,7 @@ web-canvas {
     background-repeat: no-repeat;
   }
   [part='canvas'] {
-    @apply block prose h-full w-full outline-hidden focus:ring-2 focus:ring-offset-2;
+    @apply block prose h-full outline-hidden focus:ring-2 focus:ring-offset-2;
   }
   @apply z-20;
 }

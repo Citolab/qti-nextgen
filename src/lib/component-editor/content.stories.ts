@@ -11,6 +11,7 @@ import { Meta, StoryObj } from '@storybook/web-components-vite';
 
 import { BeforeInputEvent, WebContentEditor, XmlUpdateEvent } from './index';
 import { formatNode } from './components/selection-logger';
+import xmlFormat from 'xml-formatter';
 
 const meta: Meta = {
   title: 'Core',
@@ -41,7 +42,7 @@ export const Core: Story = {
           supportedElements: 'p this-is-the-root-tag qti-simple-choice ul li qti-choice-interaction',
         });
         el.addEventListener('xml-store-xml', (e: XmlUpdateEvent) => {
-          xmlString.value.innerText = e.xml.xml;
+          xmlString.value.innerText = xmlFormat(e.xml.xml);
         });
       });
     }

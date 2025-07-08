@@ -1,30 +1,10 @@
-export function getUpperParent(range: Range): Element | null {
-  const staticRange = new StaticRange({
-    startContainer: range.startContainer,
-    startOffset: range.startOffset,
-    endContainer: range.endContainer,
-    endOffset: range.endOffset
-  });
-
-  const { startContainer: sc } = staticRange;
-  const scElm = sc.nodeType === Node.TEXT_NODE ? sc.parentElement : (sc as Element);
-
-  let parent = scElm as Element | null;
-
-  while (
-    parent &&
-    parent.parentElement &&
-    !parent.parentElement.hasAttribute('contenteditable')
-  ) {
-    parent = parent.parentElement;
+export function getUpperParent(range: Range, canvases: Element[]): Element | null {
+  let node: Node | null = range.startContainer;
+  if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+  while (node && node.parentElement && !(canvases.includes(node.parentElement))) {
+    node = node.parentElement;
   }
-
-  // Ensure we only return a valid element with contenteditable parent
-  if (parent && parent.parentElement && parent.parentElement.hasAttribute('contenteditable')) {
-    return parent;
-  }
-
-  return null;
+  return node ? (node as Element) : null;
 }
 
 export function findElement(range: Range, elName: string, canvas?: Element): Element | null {

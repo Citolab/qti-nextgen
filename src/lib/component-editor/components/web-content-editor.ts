@@ -18,9 +18,9 @@ import {
 } from './xml-store/xml-store.functions';
 import { xPath } from './xml-store/libs/xpath/Xpath';
 
-export const patchContext = createContext('signalPatch');
-export const canvasesContext = createContext<{}>('signalCanvases');
-export const selectionContext = createContext<{}>('signalSelection');
+export const patchContext = createContext<Diff[]>('signalPatch');
+export const canvasesContext = createContext<Element[]>('signalCanvases');
+export const selectionContext = createContext<StaticRange>('signalSelection');
 @customElement('web-content-editor')
 export class WebContentEditor extends LitElement {
   private _patchAgainstXMLDocument: XMLDocument;

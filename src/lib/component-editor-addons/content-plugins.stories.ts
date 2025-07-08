@@ -5,10 +5,10 @@ import example from './example.xml?raw';
 import './index';
 // import '../style.css';
 
-import { WebCanvas } from '../component-editor/components/web-canvas/web-canvas';
 import { BeforeInputEvent, WebContentEditor, XmlUpdateEvent } from '../component-editor/components/web-content-editor';
 import { Meta, StoryObj } from '@storybook/web-components-vite';
 import { formatNode } from '../component-editor/components/selection-logger';
+import xmlFormat from 'xml-formatter';
 
 const meta = {
   title: 'Addons',
@@ -42,13 +42,13 @@ export const Addons: Story = {
           canvasSelector: '.content'
         });
         el.addEventListener('xml-store-xml', (e: XmlUpdateEvent) => {
-          xmlString.value.innerText = e.xml.xml;
+          xmlString.value.innerText = xmlFormat(e.xml.xml);
         });
       });
     }
 
     return html`
-      <web-content-editor ref=${ref(initialize)} class="container mx-auto mt-12 block flex flex-col gap-x-2">
+      <web-content-editor ref=${ref(initialize)} class="container mx-auto mt-12 flex flex-col gap-x-2">
         <error-canvas
           .forbiddenWords=${['nooit', 'altijd']}
           style="position: absolute;
