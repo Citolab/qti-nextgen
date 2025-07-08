@@ -47,7 +47,7 @@ export class ElementModifierPanel extends LitElement {
       pointer-events: none;
       &:before{
         position: absolute;
-        left: -2rem;
+        left: -1rem;
         top: 0px;
         z-index: 40;
         display: block;
@@ -55,7 +55,6 @@ export class ElementModifierPanel extends LitElement {
         width: 1.25rem;
         height: 1.25rem;
         vertical-align: middle;
-        background: white;
         cursor: pointer;
         padding-right: 0.25rem;
         --tw-text-opacity: 1;

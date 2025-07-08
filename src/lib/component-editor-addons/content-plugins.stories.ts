@@ -87,7 +87,7 @@ export const Addons: Story = {
           <naar-paragraaf class="part-[btn]:cursor-pointer part-[btn]:p-1 border-y-0 px-2"> normaal </naar-paragraaf>
         </button-bar>
 
-        <!-- <element-modifier class="z-[5000] flex flex-col rounded bg-white shadow">
+        <element-modifier class="z-[5000] flex flex-col rounded bg-white shadow">
           <insert-paragraph class="part-[btn]:cursor-pointer part-[btn]:p-2 inline-block text-sm hover:bg-gray-100"
             >verwijder</insert-paragraph
           >
@@ -97,7 +97,7 @@ export const Addons: Story = {
           <naar-paragraaf class="part-[btn]:cursor-pointer part-[btn]:p-2 inline-block text-sm hover:bg-gray-100">
             normaal
           </naar-paragraaf>
-        </element-modifier> -->
+        </element-modifier>
 
         <text-selection class="z-[1000] flex gap-2 rounded border-slate-200 bg-white shadow-lg">
           <wrap-strong class="part-[btn]:cursor-pointer part-[btn]:p-2 inline-block p-4 text-sm hover:bg-gray-100">
@@ -106,7 +106,7 @@ export const Addons: Story = {
         </text-selection>
 
         <web-canvas
-          class="relative block h-auto w-full bg-white text-gray-800"
+          class="relative block h-auto w-full bg-white text-gray-800 p-8"
           style="anchor-name: --target"
         ></web-canvas>
 
