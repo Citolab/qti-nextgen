@@ -1,15 +1,15 @@
 {
-  "name": "@citolab/xml-author",
-  "repository": "https://github.com/citolab/XML-Author/",
-  "description": "XML-Author",
+  "name": "@citolab/qti-nextgen",
+  "repository": "https://github.com/citolab/qti-nextgen/",
+  "description": "QTI NextGen Component Editor",
   "author": "Patrick de Klein",
   "contributors": [],
   "license": "MIT",
   "private": false,
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=20.0.0"
   },
-  "version": "6.0.19-22",
+  "version": "1.0.0",
   "type": "module",
   "main": "",
   "exports": {
