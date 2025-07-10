@@ -33,14 +33,14 @@ const MODULE: MyModuleInterface = {
   mutateAdded: el => {
     // console.log('P added hook', el);
     // if (el.childNodes.length === 0) {
-    //   el.appendChild(el.ownerDocument.createElement('br'));
+    //   el.appendChild(el.ownerDocument.createElementNS(null,'br'));
     // }
     return null;
   },
   mutateEmpty: el => {
     // console.log(el, 'P empty hook');
     // if (el.childNodes.length === 0) {
-    //   el.appendChild(el.ownerDocument.createElement('br'));
+    //   el.appendChild(el.ownerDocument.createElementNS(null,'br'));
     // }
     return {
       startContainer: el,

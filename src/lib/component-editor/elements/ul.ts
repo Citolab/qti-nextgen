@@ -5,8 +5,8 @@ const MODULE: MyModuleInterface = {
   create: (range, data) => {
     !range.collapsed && range.deleteContentsLikeWord();
 
-    const UL = range.doc.createElement('ul');
-    const LI = range.doc.createElement('li');
+    const UL = range.doc.createElementNS(null,'ul');
+    const LI = range.doc.createElementNS(null,'li');
     UL.appendChild(LI);
 
     range.canvas.insertBefore(UL, range.upperParent.nextSibling);
@@ -23,8 +23,8 @@ const MODULE: MyModuleInterface = {
   },
   mutateEmpty: (el: Element) => {
     if (el.children.length > 0) return null; // <-- don't know why this is needed, but it is
-    const p = el.ownerDocument.createElement('p');
-    // p.appendChild(el.ownerDocument.createElement('br'));
+    const p = el.ownerDocument.createElementNS(null,'p');
+    // p.appendChild(el.ownerDocument.createElementNS(null,'br'));
     el.replaceWith(p);
     return null;
   }

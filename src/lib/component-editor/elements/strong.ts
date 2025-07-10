@@ -4,7 +4,7 @@ import { insertTextInElementNode } from '../components/utilities';
 const MODULE: MyModuleInterface = {
   identifier: 'strong',
   wrap: (range, data) => {
-    const newParent = range.startContainer.ownerDocument.createElement('strong');
+    const newParent = range.startContainer.ownerDocument.createElementNS(null,'strong');
     range.surroundContents(newParent);
     return range;
   },

@@ -37,7 +37,7 @@ function splitElement(element: Node, offset: number, splitInto?: string): [text:
   if (element.ownerDocument && element.parentElement) {
     element.textContent = text;
 
-    const newElement = element.ownerDocument.createElement(splitInto || element.parentElement.localName);
+    const newElement = element.ownerDocument.createElementNS(null, splitInto || element.parentElement.localName);
     const newText = element.ownerDocument.createTextNode(textGoesToNewNode);
 
     if (newText.textContent !== '') {
@@ -148,7 +148,7 @@ export const insertParagraphForElementNode = (range, sc: HTMLElement, createElem
   let newParagraphElement: HTMLElement;
   const document = sc.ownerDocument;
 
-  newParagraphElement = document.createElement(createElementTag);
+  newParagraphElement = document.createElementNS(null, createElementTag);
   sc.after(newParagraphElement);
 
   const cp = { ...range.static, startContainer: newParagraphElement, startOffset: 0, endOffset: 0, collapsed: true };

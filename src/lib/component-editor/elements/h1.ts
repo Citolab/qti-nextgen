@@ -27,14 +27,14 @@ const MODULE: MyModuleInterface = {
   },
   mutateAdded: el => {
     if (el.childNodes.length === 0) {
-      // el.appendChild(el.ownerDocument.createElement('br'));
+      // el.appendChild(el.ownerDocument.createElementNS(null,br'));
     }
     return null;
   },
   mutateEmpty: (el: Element): StaticRange => {
     console.log('H1 empty hook', el);
-    const p = el.ownerDocument.createElement('p');
-    // p.appendChild(el.ownerDocument.createElement('br'));
+    const p = el.ownerDocument.createElementNS(null,'p');
+    // p.appendChild(el.ownerDocument.createElementNS(null,'br'));
     el.replaceWith(p);
     return null;
   },

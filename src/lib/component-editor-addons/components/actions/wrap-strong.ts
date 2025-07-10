@@ -21,7 +21,7 @@ export class WrapStrong extends LitElement {
       @mousedown=${e => {
         e.preventDefault();
         this.logger.updateXML((range, data) => {
-          range.surroundContents(document.createElement("strong"))
+          range.surroundContents(document.createElementNS(null,"strong"))
           return range;
         });
       }}

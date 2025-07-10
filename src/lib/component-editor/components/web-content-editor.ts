@@ -116,10 +116,10 @@ export class WebContentEditor extends LitElement {
 // in the xml strip all whitespace and newlines between elements
     const filledDoc = parser.parseFromString(`<${xmlRootNodeName}>${xml}</${xmlRootNodeName}>`, 'text/xml');
     filledDoc.normalize();
-    filledDoc.createElement = (tagName: string) => {
-      // we need override the createElement to create elements without namespace
-      return filledDoc.createElementNS(null, tagName.toLocaleLowerCase());
-    };
+    // filledDoc.createElement = (tagName: string) => {
+    //   // we need override the createElement to create elements without namespace
+    //   return filledDoc.createElementNS(null, tagName.toLocaleLowerCase());
+    // };
 
     this.xmlDocument = filledDoc;
 
@@ -148,7 +148,7 @@ export class WebContentEditor extends LitElement {
     const xmlRange = this.createRangeXML(this.logger.xmlRange);
 
     //create new div
-    const newContent = this.xmlDocument.createElement('div');
+    const newContent = this.xmlDocument.createElementNS(null, 'div');
     newContent.innerHTML = data;
 
     const upperParentNode = getUpperParent(xmlRange, this.xmlCanvasElements);

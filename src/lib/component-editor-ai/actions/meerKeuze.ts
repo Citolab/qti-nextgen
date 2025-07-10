@@ -26,15 +26,15 @@ export class MeerKeuze extends LitElement {
           !range.collapsed && deleteContentsLikeWord(range);
           const doc = range.startContainer.ownerDocument;
 
-          const CI = doc.createElement('qti-choice-interaction');
+          const CI = doc.createElementNS(null,'qti-choice-interaction');
           CI.setAttribute('response-identifier', 'RESPONSE');
           CI.setAttribute('max-choices', '1');
 
-          const PR = doc.createElement('qti-prompt');
+          const PR = doc.createElementNS(null,'qti-prompt');
           const PRT = doc.createTextNode('vraag');
           PR.appendChild(PRT);
 
-          const SC = doc.createElement('qti-simple-choice');
+          const SC = doc.createElementNS(null,'qti-simple-choice');
           SC.setAttribute('identifier', 'CHOICE');
           // SC.setAttribute('fixed', 'false');
           // SC.setAttribute('show-hide', 'show');

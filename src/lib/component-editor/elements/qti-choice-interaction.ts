@@ -7,16 +7,16 @@ const MODULE: MyModuleInterface = {
     const doc = range.startContainer.ownerDocument;
     !range.collapsed && deleteContentsLikeWord(range);
 
-    const CI = doc.createElement('qti-choice-interaction');
+    const CI = doc.createElementNS(null,'qti-choice-interaction');
     CI.setAttribute('response-identifier', 'RESPONSE');
     CI.setAttribute('max-choices', '1');
 
-    const PR = doc.createElement('qti-prompt');
-    const BR = doc.createElement('br');
+    const PR = doc.createElementNS(null,'qti-prompt');
+    const BR = doc.createElementNS(null,'br');
 
     PR.appendChild(BR);
 
-    const SC = doc.createElement('qti-simple-choice');
+    const SC = doc.createElementNS(null,'qti-simple-choice');
     SC.setAttribute('identifier', 'CHOICE');
     // SC.setAttribute('fixed', 'false');
     // SC.setAttribute('show-hide', 'show');

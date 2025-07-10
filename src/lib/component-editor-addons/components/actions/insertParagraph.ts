@@ -22,7 +22,7 @@ export class InsertParagraph extends LitElement {
       @mousedown=${e => {
         e.preventDefault();
         this.logger.updateXML((range, data) => {
-          const P = range.startContainer.ownerDocument.createElement('p');
+          const P = range.startContainer.ownerDocument.createElementNS(null,'p');
           // const BR = range.doc.createElement('br');
           // P.append(BR);
           // range.upperParent.replaceWith(P);
