@@ -1,0 +1,165 @@
+# QTI NextGen Web Content Editor
+
+> ⚠️ **Warning:** This component is a proof of concept and highly experimental.
+
+## What Makes This Different?
+
+**Direct XML Editing in the Browser** - This editor lets you edit XML content directly through `contenteditable`, using native browser APIs instead of converting to JSON representations.
+
+### How it Works
+- `<web-content-editor>` Keeps an XML document in memory
+- `<web-canvas>` shows an HTML representation of the XML in the browser
+- the canvas-selector shows which parts of the XML are editable
+- these parts will be marked in the HTML with contenteditable
+- the editor uses native browser APIs to handle input events, selection, and mutations
+- we use the onBeforeInput event to handle text input, allowing us to edit XML directly
+- `<web-canvas>` throws an event to `<web-content-editor>` with the onbeforeInput event data.
+- `<web-content-editor>` manipulats the XML accordingly and updates the patchContext
+- the `<web-canvas>` will then update the view based on the patchContext
+
+the html can contain additional attributes and classes to make it easier to style and manipulate, but the XML representation is the source of truth.
+so the patching process from the xml will add or remove attributes from the html which were previously on the XML, but will *not* remove attributes that were not in the XML.
+so a p tag in xml can be just `<p></p>` but in HTML `<p data-pilot="World">Hello World</p>` where the attribute in HTML is not in the XML, and will be used to style the HTML representation.
+
+### Key Innovation
+- **XML as Source, Not JSON** - Edit QTI XML format directly in the browser
+- **Native Browser APIs** - Built on `beforeInput` events, `MutationObserver`, `StaticRange`, and `Range`
+- **No New APIs to Learn** - Use standard DOM manipulation and Selection APIs
+- **Real-time XML Validation** - Check against XSD schemas on the server
+
+---
+
+## Core Principles
+
+✅ **Browser-Native**: Built on native features like XML parsing, input events, and mutation observers  
+✅ **Direct XML Manipulation**: Edit XML directly using DOM API - changes reflect immediately  
+✅ **Standard Selection API**: Use native Selection API instead of custom implementations  
+✅ **Future-Proof**: Designed to leverage upcoming browser features like EditContext API  
+
+---
+
+## The `<web-content-editor>` Component
+
+A custom LitElement-based web component that provides a native API for editing XML-based content through contenteditable.
+
+### Quick Start
+
+```html
+<web-content-editor>
+  <web-canvas></web-canvas>
+</web-content-editor>
+```
+
+```typescript
+const editor = document.querySelector('web-content-editor');
+editor.initialize('<p>Hello World</p>', {
+  supportedElements: 'p h1 em strong ul li',
+  canvasSelector: 'this-is-the-root-tag'
+});
+```
+
+---
+
+## Core Features
+
+### XML Document Management
+- **Load & Edit**: Direct XML content manipulation
+- **Custom Elements**: Dynamic loading of supported elements
+- **Real-time Updates**: Changes reflect immediately in the XML
+
+### Advanced Editing
+- **Selection Management**: Native range tracking and updates
+- **Undo/Redo**: Complete history management
+- **Diff Tracking**: Uses DiffDOM for change detection
+- **Context Providers**: State sharing via Lit context APIs
+
+### Integration Ready
+- **API Key Management**: Built-in key storage and retrieval
+- **Event System**: Custom events for changes, selections, and input
+- **Modular Styling**: Custom CSS stylesheet adoption
+
+---
+
+## What Works Now
+
+✅ **Basic XML Loading**: Load and edit XML content  
+✅ **Selection Management**: Track and create selection ranges  
+✅ **Undo/Redo**: Full history functionality  
+✅ **Event Handling**: Input events and selection updates  
+
+---
+
+## UX Inspiration
+
+Drawing from the best editing experiences:
+- **Plate.js** - Rich text editing patterns
+- **ContentBuilder.js** - Visual content management
+- **Notion** - Intuitive block-based editing
+
+**The Difference**: We edit XML directly, not JSON representations, making it perfect for QTI NextGen workflows.
+
+---
+
+## API Reference
+
+### Initialization
+```typescript
+initialize(xml: string, options: { 
+  supportedElements?: string; 
+  canvasSelector?: string 
+})
+```
+
+## Experimental Features
+
+### Toolbar Actions
+- **Text Formatting**: Wrap selection in `<strong>` tags
+- **Element Conversion**: Convert `<p>` to `<h1>` and vice versa
+- **Content Insertion**: Add new paragraphs
+
+### Innovative Selections
+- **Drag-Select**: Square selection with mouse for multiple elements
+- **Error Canvas**: Visual error highlighting (future: CSS Highlight API)
+- **Pilot Canvas**: AI-powered content suggestions
+- **Info Canvas**: Thumbnail preview for responsive design
+
+### UI Enhancements
+- **Element Modifier**: Three-dot menu for element actions
+- **Text Selection Menu**: Contextual options above selected text
+- **Download Functionality**: Export XML as file
+
+---
+
+## Future-Proof Technology
+
+### Current Libraries (Replaceable)
+- `diffdom` → Mutation Observer event logging
+- `floating-ui` → CSS Anchor Positioning API
+- `error-canvas` → CSS Highlight API
+
+### Upcoming Integration
+- **EditContext API** - Native editing support (in development)
+- **CSS Highlight API** - Better error visualization
+- **CSS Anchor Positioning** - Improved UI positioning
+
+---
+
+## Context Providers
+
+- `patchContext` - Current diffs/patches
+- `canvasesContext` - Canvas elements
+- `selectionContext` - Selection range
+- `editContext` - Editor state and utilities
+- `xmlSelectionContext` - XML selection details
+
+---
+
+## Contact & Resources
+
+**Team**: [CitoLab Prototypes Team](https://cito.nl/onderzoek-innovatie/over-citolab/onze-teams/team-prototypes/)
+
+**Email**: getinspiredbycitolab@gmail.com
+
+[![GitHub](https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Citolab/qti-components/)
+[![License](https://img.shields.io/badge/license-GPL-blue.svg)](https://opensource.org/license/gpl-2-0/)
+[![npm version](https://badge.fury.io/js/%40citolab%2Fqti-components.svg)](https://badge.fury.io/js/%40citolab%2Fqti-components)
